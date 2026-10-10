@@ -31,7 +31,6 @@ body {
     background-color: var(--branco);
 }
 
-/* Header */
 header {
     background-color: var(--preto);
     color: var(--branco);
@@ -65,83 +64,89 @@ header {
         }
     }
 
+    .header-user {
+        font-size: 24px;
+        color: var(--cinza);
+    }
+
 }
 
-.header-user {
-    font-size: 16px;
-    color: var(--cinza);
-}
 
-/* App Layout - Sidebar + Conteúdo */
 .app-layout {
     display: flex;
     height: calc(100vh - 70px);
     width: 100vw;
-}
 
-/* Sidebar */
-.sidebar {
-    width: 230px;
-    background-color: var(--cinza);
-    padding: 20px 10px;
-    flex-shrink: 0;
-}
 
-.sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
+    .sidebar {
+        width: 230px;
+        background-color: var(--cinza);
+        padding: 20px 10px;
+        flex-shrink: 0;
+        padding: 10px;
+        h1{
+            color: var(--dourado);
+            font-size: 30px;
+            font-weight: 400;
+            text-align: center;
+            justify-self: center;
+            border-bottom: solid 1px var(--dourado);
+            width: 200px;
+            margin-bottom: 40px;
+        }
 
-.nav-link {
-    color: var(--dourado);
-    text-decoration: none;
-    font-size: 16px;
-    padding: 12px 16px;
-    border-radius: 6px;
-    transition: 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
 
-    &:hover {
-        background-color: rgba(159, 129, 88, 0.2);
-        color: var(--dourado);
+            .nav-link {
+                color: var(--dourado);
+                text-decoration: none;
+                font-size: 20px;
+                padding: 12px 16px;
+                border-radius: 6px;
+                transition: 0.3s;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+
+                &:hover {
+                    background-color: rgba(159, 129, 88, 0.2);
+                    color: var(--dourado);
+                }
+            }
+
+            .active {
+                text-decoration: underline;
+            }
+        }
     }
-}
 
 
+    .main-content {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        height: 100%;
+    }
 
-.nav-link.active {
-    background-color: var(--dourado);
-    color: var(--branco);
-}
+    /* Ajustes no Container do Calendário */
+    #calendar {
+        width: 100%;
+        height: 100%;
+        background-color: var(--branco);
+        padding: 15px;
+        border-radius: 8px;
+    }
 
-/* Conteúdo Principal */
-.main-content {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-    height: 100%;
-}
+    /* Estilização básica dos botões do FullCalendar com as suas cores */
+    .fc-button-primary {
+        background-color: var(--dourado) !important;
+        border-color: var(--dourado) !important;
+    }
 
-/* Ajustes no Container do Calendário */
-#calendar {
-    width: 100%;
-    height: 100%;
-    max-height: calc(100vh - 110px);
-    background-color: var(--branco);
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-/* Estilização básica dos botões do FullCalendar com as suas cores */
-.fc-button-primary {
-    background-color: var(--dourado) !important;
-    border-color: var(--dourado) !important;
-}
-
-.fc-button-primary:hover {
-    background-color: #836943 !important;
+    .fc-button-primary:hover {
+        background-color: #836943 !important;
+    }
 }

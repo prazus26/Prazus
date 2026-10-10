@@ -6,26 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prazus - Agenda Jurídica</title>
 
-    <!-- CSS Próprio -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/usuario.css') }}">
 
-    <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Marcellus&display=swap" rel="stylesheet">
 
-    <!-- FullCalendar v6 Scripts & CDN -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales/pt-br.global.min.js"></script>
 </head>
 
 <body>
-    <!-- Topbar/Header -->
     <header>
-        <a href="/" class="logo">
+        <a href="/Calendario" class="logo">
             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo Prazus">
             <h1>PRAZUS</h1>
         </a>
@@ -34,30 +29,49 @@
         </div>
     </header>
 
-    <!-- Layout Principal com Flexbox (Sidebar + Conteúdo) -->
     <div class="app-layout">
-        <!-- Sidebar Fixo -->
+
         <aside class="sidebar">
+            <h1>Menu</h1>
             <nav class="sidebar-nav">
-                <a href="#" class="nav-link active">Calendario</a>
-                <a href="#" class="nav-link">Publicados Hoje</a>
-                <a href="#" class="nav-link">Notificações</a>
-                <a href="#" class="nav-link">Minha conta</a>
-                <a href="#" class="nav-link">Escala de cores</a>
+                <a href="/Calendario" class="nav-link {% if request.path|lower == '/calendario' %}active{% endif %}">
+                    <img src="/static/images/iconesSideBarUsuario/calendar.png" alt="">
+                    Calendário
+                </a>
+
+                <a href="/PublicadosHoje"
+                    class="nav-link {% if request.path|lower == '/publicadoshoje' %}active{% endif %}">
+                    <img src="/static/images/iconesSideBarUsuario/publicadosHoje.png" alt="">
+                    Publicados Hoje
+                </a>
+
+                <a href="/Notificações"
+                    class="nav-link {% if request.path|lower == '/notificações' %}active{% endif %}">
+                    <img src="/static/images/iconesSideBarUsuario/notificacoes.png" alt="">
+                    Notificações
+                </a>
+
+                <a href="/Conta" class="nav-link {% if request.path|lower == '/conta' %}active{% endif %}">
+                    <img src="/static/images/iconesSideBarUsuario/minhaConta.png" alt="">
+                    Minha conta
+                </a>
+
+                <a href="/EscalaDeCores"
+                    class="nav-link {% if request.path|lower == '/escaladecores' %}active{% endif %}">
+                    <img src="/static/images/iconesSideBarUsuario/escalaDeCores.png" alt="">
+                    Escala de cores
+                </a>
             </nav>
         </aside>
 
-        <!-- Conteúdo onde o template do Flask injeta as páginas -->
         <main class="main-content">
             {% block content_usuario %}
-            <!-- A div do calendário deve estar na página que herda esse template ou aqui diretamente -->
 
             {% endblock %}
         </main>
     </div>
 
-    <!-- JS Principal -->
-    <script src="{{ url_for('static', filename='js/usuario.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 
 </html>
