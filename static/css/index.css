@@ -1,0 +1,105 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --dourado: #9F8158;
+    --preto: #0F0D0B;
+    --cinza: #E8E6E7;
+    --branco: #FFFFFF;
+    font-family: "Marcellus", serif;
+}
+
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+
+    background-color: var(--preto);
+
+    .coteudo_inicio {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .logo {
+            color: var(--cinza);
+            display: flex;
+            flex-direction: row;
+            gap: 30px;
+            align-items: center;
+            text-decoration: none;
+
+            img {
+                width: 60px;
+            }
+
+            h1 {
+                font-family: "Italiana", sans-serif;
+                font-weight: 100;
+                font-size: 52px;
+                transition: 0.3s;
+
+                &:hover {
+                    color: var(--dourado);
+                }
+            }
+
+        }
+
+        .botoes {
+            display: flex;
+            flex-direction: row;
+            text-align: center;
+            margin-top: 30px;
+            gap: 30px;
+
+            a {
+                color: var(--branco);
+                text-decoration: none;
+                font-size: 28px;
+                font-weight: 400;
+                transition: 0.5s;
+                border-radius: 4px;
+
+                &:first-child {
+                    background-color: #5f4b30;
+                    padding: 8px 16px;
+
+                    &:hover {
+                        background-color: var(--dourado);
+                        color: var(--branco);
+                        padding: 8px 16px;
+                    }
+                }
+
+                &:last-child {
+                    border: inset 1px var(--branco);
+                    padding: 8px 16px;
+
+                    &:hover {
+                        background-color: var(--dourado);
+                        border: inset 1px var(--dourado);
+                    }
+                }
+            }
+        }
+    }
+}

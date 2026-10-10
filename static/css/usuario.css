@@ -1,0 +1,147 @@
+.italiana-regular {
+    font-family: "Italiana", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.marcellus-regular {
+    font-family: "Marcellus", serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --dourado: #9F8158;
+    --preto: #0F0D0B;
+    --cinza: #E8E6E7;
+    --branco: #FFFFFF;
+    font-family: "Marcellus", serif;
+}
+
+html,
+body {
+    height: 100vh;
+    overflow: hidden;
+    background-color: var(--branco);
+}
+
+/* Header */
+header {
+    background-color: var(--preto);
+    color: var(--branco);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+
+    .logo {
+        color: var(--cinza);
+        display: flex;
+        flex-direction: row;
+        gap: 30px;
+        align-items: center;
+        text-decoration: none;
+
+        img {
+            width: 60px;
+        }
+
+        h1 {
+            font-family: "Italiana", sans-serif;
+            font-weight: 100;
+            font-size: 52px;
+            transition: 0.3s;
+
+            &:hover {
+                color: var(--dourado);
+            }
+        }
+    }
+
+}
+
+.header-user {
+    font-size: 16px;
+    color: var(--cinza);
+}
+
+/* App Layout - Sidebar + Conteúdo */
+.app-layout {
+    display: flex;
+    height: calc(100vh - 70px);
+    width: 100vw;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 230px;
+    background-color: var(--cinza);
+    padding: 20px 10px;
+    flex-shrink: 0;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.nav-link {
+    color: var(--dourado);
+    text-decoration: none;
+    font-size: 16px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    &:hover {
+        background-color: rgba(159, 129, 88, 0.2);
+        color: var(--dourado);
+    }
+}
+
+
+
+.nav-link.active {
+    background-color: var(--dourado);
+    color: var(--branco);
+}
+
+/* Conteúdo Principal */
+.main-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    height: 100%;
+}
+
+/* Ajustes no Container do Calendário */
+#calendar {
+    width: 100%;
+    height: 100%;
+    max-height: calc(100vh - 110px);
+    background-color: var(--branco);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Estilização básica dos botões do FullCalendar com as suas cores */
+.fc-button-primary {
+    background-color: var(--dourado) !important;
+    border-color: var(--dourado) !important;
+}
+
+.fc-button-primary:hover {
+    background-color: #836943 !important;
+}

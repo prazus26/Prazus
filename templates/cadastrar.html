@@ -1,0 +1,34 @@
+{% extends 'baseLoginCadastro.html' %}
+
+{% block content_inicio %}
+<main class="cadastrar_conteudo">
+    <div class="conteudo">
+        <div class="esquerda">
+            <h1>Bem vindo a <strong>Prazus</strong><br>
+                Sua agenda jurídica, sempre <br>atualizada.</h1>
+        </div>
+        <div class="direita">
+            <h1>Preencha os dados abaixo para começar. </h1>
+            <form action="/cadastrar" method="POST">
+                <label for="nome">Nome Completo <strong>*</strong></label>
+                <input type="text" id="nome" name="nome" maxlength="100" required>
+
+                <label for="email">Email <strong>*</strong></label>
+                <input type="email" id="email" name="email" maxlength="100" required>
+
+                <label for="senha">Senha<strong>*</strong></label>
+                <input type="senha" id="senha" name="senha" maxlength="100" required>
+
+                <label for="confirmar_senha">Confirmar senha<strong>*</strong></label>
+                <input type="confirmar_senha" id="confirmar_senha" name="confirmar_senha" maxlength="100" required>
+
+                <label for="oab">OAB<strong>*</strong></label>
+                <input type="oab" id="oab" name="oab" maxlength="100" required>
+
+                <button>Cadastrar</button>
+            </form>
+        </div>
+    </div>
+    <div class="baixo"></div>
+</main>
+{% endblock %}

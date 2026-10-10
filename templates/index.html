@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prazus</title>
+
+    <link rel="stylesheet" href="/static/css/index.css">
+
+    <link rel="icon" type="image/png" href="{{ ( url_for('static', filename='images/logo.png') ) }}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Marcellus&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <main>
+        <div class="coteudo_inicio">
+            <a href="/" class="logo">
+                <img src="{{ (url_for('static', filename='images/logo.png')) }}" alt="">
+                <h1>PRAZUS</h1>
+            </a>
+            <h1 style="color: white; font-weight: 300;">Organize seus dados de forma organizada</h1>
+            <div class="botoes">
+                <a href="/login">Login</a>
+                <a href="/cadastrar">Cadastrar</a>
+            </div>
+        </div>
+
+    </main>
+</body>
+
+</html>

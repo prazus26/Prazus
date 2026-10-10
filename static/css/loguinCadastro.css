@@ -1,0 +1,187 @@
+.italiana-regular {
+    font-family: "Italiana", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.marcellus-regular {
+    font-family: "Marcellus", serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --dourado: #9F8158;
+    --preto: #0F0D0B;
+    --cinza: #E8E6E7;
+    --branco: #FFFFFF;
+    font-family: "Marcellus", serif;
+}
+
+header {
+    background-color: var(--preto);
+    color: var(--branco);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 20px 30px;
+
+    .logo {
+        color: var(--cinza);
+        display: flex;
+        flex-direction: row;
+        gap: 30px;
+        align-items: center;
+        text-decoration: none;
+
+        img {
+            width: 60px;
+        }
+
+        h1 {
+            font-family: "Italiana", sans-serif;
+            font-weight: 100;
+            font-size: 52px;
+            transition: 0.3s;
+
+            &:hover {
+                color: var(--dourado);
+            }
+        }
+
+    }
+
+    nav {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-evenly;
+        align-items: center;
+        background-color: var(--verde-principal);
+        gap: 30px;
+
+        a {
+            color: var(--branco);
+            text-decoration: none;
+            font-size: 28px;
+            font-weight: 400;
+            transition: 0.5s;
+
+            &:hover {
+                color: var(--dourado);
+            }
+        }
+    }
+
+
+}
+
+
+.cadastrar_conteudo {
+
+    .conteudo {
+        background: url(/static/images/plano_de_fundo.png) center /cover no-repeat;
+        display: flex;
+        justify-content: space-around;
+
+        .esquerda {
+            width: 50%;
+            display: flex;
+            align-items: flex-start;
+            padding: 60px 10px;
+            font-family: "Italiana", sans-serif;
+            font-weight: 100;
+
+            h1 {
+                color: white;
+                font-size: 35px;
+                font-weight: normal;
+            }
+
+            strong {
+                color: var(--dourado);
+            }
+        }
+
+        .direita {
+            width: 50%;
+            height: 100vh;
+            background: var(--cinza);
+            padding: 30px;
+
+            h1 {
+                text-align: center;
+                font-size: 22px;
+                font-weight: normal;
+                padding-top: 30px;
+                color: var(--preto);
+            }
+
+            form {
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+            }
+
+            label {
+                width: 72%;
+                text-align: left;
+                font-size: 30px;
+                color: var(--dourado);
+                margin-bottom: 5px;
+
+                strong {
+                    color: #963B3C;
+                }
+            }
+
+            input {
+                width: 70%;
+                height: 30px;
+                margin-bottom: 20px;
+                border: 1px solid #b8b0aa;
+                background: transparent;
+                outline: none;
+                padding: 5px 10px;
+
+                &:focus {
+                    border-color: var(--dourado);
+                }
+            }
+
+            button {
+                width: 45%;
+                height: 35px;
+                margin-top: 10px;
+                border: none;
+                background: var(--dourado);
+                color: var(--branco);
+                cursor: pointer;
+
+                &:hover {
+                    opacity: 0.9;
+                }
+            }
+
+        }
+    }
+
+    .baixo {
+        width: 100%;
+        height: 20px;
+        background-color: #7D6E5E;
+    }
+}
+
+.login_conteudo {
+    .conteudo {
+        background-color: aqua;
+    }
+}

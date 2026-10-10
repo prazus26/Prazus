@@ -1,0 +1,20 @@
+{% extends 'baseLoginCadastro.html' %}
+
+{% block content_inicio %}
+<main class="login_conteudo">
+    <div class="conteudo">
+        <h1>Entrar
+            <h1>Preencha os dados abaixo para começar. </h1>
+            <form action="/login" method="POST">
+
+                <label for="email">Email <strong>*</strong></label>
+                <input type="email" id="email" name="email" maxlength="100" required>
+
+                <label for="senha">Senha<strong>*</strong></label>
+                <input type="senha" id="senha" name="senha" maxlength="100" required>
+
+                <button>Entrar</button>
+            </form>
+    </div>
+</main>
+{% endblock %}
