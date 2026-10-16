@@ -8,7 +8,17 @@ from controller.notificacoes_controller import notificacoes_bp
 from controller.minhaContaUsuario_controller import minhaContaUsuario_bp
 from controller.escalaDeCores_controller import escalaDeCores_bp
 
+from controller.usuario_controller import usuario_bp
+
+import os
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
 app = Flask(__name__)
+
+app.secret_key = os.getenv("SECRET_KEY")
 
 app.register_blueprint(index_bp)
 app.register_blueprint(cadastrar_bp)
@@ -18,6 +28,8 @@ app.register_blueprint(publicadosHoje_bp)
 app.register_blueprint(notificacoes_bp)
 app.register_blueprint(minhaContaUsuario_bp)
 app.register_blueprint(escalaDeCores_bp)
+
+app.register_blueprint(usuario_bp)
 
 if __name__ == "__main__":
     app.run(port=9001, debug=True)
