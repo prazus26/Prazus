@@ -61,6 +61,10 @@
                     <img src="/static/images/iconesSideBarUsuario/escalaDeCores.png" alt="">
                     Escala de cores
                 </a>
+
+                <form action="{{ url_for('login.logout') }}" method="POST">
+                    <button type="submit">Sair</button>
+                </form>
             </nav>
         </aside>
 

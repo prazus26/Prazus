@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prazus - Agenda Jurídica</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/usuario.css') }}">
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Marcellus&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales/pt-br.global.min.js"></script>
+</head>
+
+<body>
+    <header>
+        <a href="/Calendario" class="logo">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo Prazus">
+            <h1>PRAZUS</h1>
+        </a>
+        <div class="header-user">
+            <span>Bem-vindo, admin</span>
+        </div>
+    </header>
+
+    <div class="app-layout">
+
+        <aside class="sidebar">
+            <h1>Menu</h1>
+            <nav class="sidebar-nav">
+                <a href="/Calendario" class="nav-link {% if request.path|lower == '/calendario' %}active{% endif %}">
+                    <img src="/static/images/iconesSideBarUsuario/calendar.png" alt="">
+                    Calendário
+                </a>
+
+                <a href="/PublicadosHoje"
+                    class="nav-link {% if request.path|lower == '/publicadoshoje' %}active{% endif %}">
+                    <img src="/static/images/iconesSideBarUsuario/publicadosHoje.png" alt="">
+                    Publicados Hoje
+                </a>
+
+                <a href="/Notificações"
+                    class="nav-link {% if request.path|lower == '/notificações' %}active{% endif %}">
+                    <img src="/static/images/iconesSideBarUsuario/notificacoes.png" alt="">
+                    Notificações
+                </a>
+
+                <a href="/Conta" class="nav-link {% if request.path|lower == '/conta' %}active{% endif %}">
+                    <img src="/static/images/iconesSideBarUsuario/minhaConta.png" alt="">
+                    Minha conta
+                </a>
+
+                <a href="/EscalaDeCores"
+                    class="nav-link {% if request.path|lower == '/escaladecores' %}active{% endif %}">
+                    <img src="/static/images/iconesSideBarUsuario/escalaDeCores.png" alt="">
+                    Escala de cores
+                </a>
+
+                <form action="{{ url_for('login.logout') }}" method="POST">
+                    <button type="submit">Sair</button>
+                </form>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            {% block content_usuario %}
+
+            {% endblock %}
+        </main>
+    </div>
+
+    <script src="/static/javascript/app.js"></script>
+</body>
+
+</html>
