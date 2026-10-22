@@ -3,7 +3,7 @@ from utils.autenticacao import login_obrigatorio
 
 calendario_bp = Blueprint("calendario", __name__)
 
-@calendario_bp.route("/calendario")
+@calendario_bp.route("/Calendario")
 @login_obrigatorio
 def calendario():
     return render_template("calendario.html")

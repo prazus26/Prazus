@@ -10,5 +10,5 @@ class Usuario(Base):
     email = Column(String(150), unique=True, nullable=False)
     senha_hash = Column(String(255), nullable=False)
     tipo = Column(String(20), nullable=False, default="advogado")
-    oab_numero = Column(String(30), nullable=True)
+    oab_numero = Column(String(6), nullable=True)
     oab_uf = Column(String(2), nullable=True)
