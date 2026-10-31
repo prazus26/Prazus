@@ -1,7 +1,55 @@
 {% extends 'baseUsuarioDashboard.html' %}
 
 {% block content_usuario %}
-
-<h1>Minha Conta Usuario</h1>
+<div class="minhaContaUsuario">
+    {% if usuario_logado %}
+    <form class="editarConta" action="">
+        <h1>MINHA CONTA</h1>
+        <h2>Nome</h2>
+        <input type="text" placeholder="{{ usuario_logado.nome }}">
+        <h2>OAB</h2>
+        <input type="text" placeholder="{{ usuario_logado.oab_numero }}">
+        <h2>OAB UF</h2>
+        <select id="oab_uf" name="oab_uf" >
+            <option value="">{{ usuario_logado.oab_uf }}</option>
+            <option value="AC">AC</option>
+            <option value="AL">AL</option>
+            <option value="AP">AP</option>
+            <option value="AM">AM</option>
+            <option value="BA">BA</option>
+            <option value="CE">CE</option>
+            <option value="DF">DF</option>
+            <option value="ES">ES</option>
+            <option value="GO">GO</option>
+            <option value="MA">MA</option>
+            <option value="MT">MT</option>
+            <option value="MS">MS</option>
+            <option value="MG">MG</option>
+            <option value="PA">PA</option>
+            <option value="PB">PB</option>
+            <option value="PR">PR</option>
+            <option value="PE">PE</option>
+            <option value="PI">PI</option>
+            <option value="RJ">RJ</option>
+            <option value="RN">RN</option>
+            <option value="RS">RS</option>
+            <option value="RO">RO</option>
+            <option value="RR">RR</option>
+            <option value="SC">SC</option>
+            <option value="SP">SP</option>
+            <option value="SE">SE</option>
+            <option value="TO">TO</option>
+        </select>
+        <h2>Email</h2>
+        <input type="text" placeholder="{{ usuario_logado.email }}">
+        <h2>Senha</h2>
+        <input type="text">
+        <h2>Confirmar senha</h2>
+        <input type="text"><br>
+        <button>SALVAR ALTERAÇÕES</button>
+        <button class="btnCancelar">CANCELAR</button>
+    </form>
+    {% endif %}
+</div>
 
 {% endblock %}
