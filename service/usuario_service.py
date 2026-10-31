@@ -1,6 +1,7 @@
 from werkzeug.security import generate_password_hash,check_password_hash
 from repository.usuario_repository import (
     buscar_por_email,
+    buscar_por_id,
     cadastrar
 )
 from model.usuario import Usuario
@@ -64,3 +65,6 @@ def autenticar_usuario(email, senha):
         return None
 
     return usuario
+
+def buscar_usuario_por_id(usuario_id):
+    return buscar_por_id(usuario_id)

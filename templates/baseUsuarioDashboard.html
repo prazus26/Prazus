@@ -25,7 +25,9 @@
             <h1>PRAZUS</h1>
         </a>
         <div class="header-user">
-            <span>Bem-vindo, Zitelli</span>
+            {% if usuario_logado %}
+            <span>Bem-vindo, {{ usuario_logado.nome }}.</span>
+            {% endif %}
         </div>
     </header>
 

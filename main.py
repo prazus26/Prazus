@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask,session
 from controller.index_controller import index_bp
 from controller.cadastrar_controller import cadastrar_bp
 from controller.login_controller import login_bp
@@ -13,12 +13,28 @@ from controller.usuario_controller import usuario_bp
 import os
 from dotenv import load_dotenv
 
+from service.usuario_service import buscar_usuario_por_id
+
 
 load_dotenv()
 
 app = Flask(__name__)
 
 app.secret_key = os.getenv("SECRET_KEY")
+
+@app.context_processor
+def carregar_usuario():
+
+    usuario = None
+
+    usuario_id = session.get("usuario_id")
+
+    if usuario_id:
+        usuario = buscar_usuario_por_id(usuario_id)
+
+    return {
+        "usuario_logado": usuario
+    }
 
 app.register_blueprint(index_bp)
 app.register_blueprint(cadastrar_bp)

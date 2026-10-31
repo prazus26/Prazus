@@ -20,3 +20,15 @@ def cadastrar(usuario):
         except Exception:
             sessao.rollback()
             raise
+
+def buscar_por_id(usuario_id):
+
+    db = Session()
+
+    try:
+        return db.query(Usuario).filter(
+            Usuario.id == usuario_id
+        ).first()
+
+    finally:
+        db.close()
