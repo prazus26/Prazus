@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
       events: [
         {
           title: 'Audiência de Conciliação',
-          start: '2026-10-15',
+          start: '2026-11-09',
           color: '#f89d81'
         },
         {
