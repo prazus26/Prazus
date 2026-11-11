@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Date, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, Integer, Date, DateTime, ForeignKey, Enum, func
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -48,7 +48,16 @@ class Prazo(Base):
 
     concluido_em = Column(DateTime, nullable=True)
 
-    criado_em = Column(DateTime, nullable=False)
-    atualizado_em = Column(DateTime, nullable=True)
+    criado_em = Column(
+    DateTime,
+    nullable=False,
+    server_default=func.current_timestamp()
+    )
+
+    atualizado_em = Column(
+    DateTime,
+    nullable=True,
+    onupdate=func.current_timestamp()
+    )
 
     publicacao = relationship("Publicacao", backref="prazo")

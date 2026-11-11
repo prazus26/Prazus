@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String, Date, DateTime, Text, ForeignKey
+
+from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, func
+from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -19,9 +21,18 @@ class Publicacao(Base):
     data_disponibilizacao = Column(Date, nullable=False)
     data_publicacao = Column(Date, nullable=True)
 
-    conteudo_original = Column(Text, nullable=False)
+    conteudo_original = Column(LONGTEXT, nullable=False)
 
-    criado_em = Column(DateTime, nullable=False)
-    atualizado_em = Column(DateTime, nullable=True)
+    criado_em = Column(
+        DateTime,
+        nullable=False,
+        server_default=func.current_timestamp()
+    )
+
+    atualizado_em = Column(
+        DateTime,
+        nullable=True,
+        onupdate=func.current_timestamp()
+    )
 
     processo = relationship("Processo", backref="publicacoes")

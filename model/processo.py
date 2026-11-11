@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, func
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -21,7 +21,16 @@ class Processo(Base):
 
     observacoes_usuario = Column(Text, nullable=True)
 
-    criado_em = Column(DateTime, nullable=False)
-    atualizado_em = Column(DateTime, nullable=True)
+    criado_em = Column(
+    DateTime,
+    nullable=False,
+    server_default=func.current_timestamp()
+    )
+
+    atualizado_em = Column(
+    DateTime,
+    nullable=True,
+    onupdate=func.current_timestamp()
+    )
 
     usuario = relationship("Usuario", backref="processos")

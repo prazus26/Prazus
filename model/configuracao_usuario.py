@@ -1,5 +1,5 @@
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, text
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, text, func
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -18,12 +18,18 @@ class ConfiguracaoUsuario(Base):
 
     escala_cores = Column(String(30), nullable=True)
 
+    concluido_em = Column(DateTime, nullable=True)
+
     criado_em = Column(
-        DateTime,
-        nullable=False,
-        server_default=text("CURRENT_TIMESTAMP")
+    DateTime,
+    nullable=False,
+    server_default=func.current_timestamp()
     )
 
-    atualizado_em = Column(DateTime, nullable=True)
+    atualizado_em = Column(
+    DateTime,
+    nullable=True,
+    onupdate=func.current_timestamp()
+    )
 
     usuario = relationship("Usuario", backref="configuracoes")

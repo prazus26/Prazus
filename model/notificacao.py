@@ -1,7 +1,7 @@
 
 from sqlalchemy import (
     Column, Integer, String, Text, DateTime,
-    Boolean, ForeignKey, text
+    Boolean, ForeignKey, text, func
 )
 from sqlalchemy.orm import relationship
 from database import Base
@@ -39,10 +39,18 @@ class Notificacao(Base):
         server_default=text("0")
     )
 
+    concluido_em = Column(DateTime, nullable=True)
+
     criado_em = Column(
-        DateTime,
-        nullable=False,
-        server_default=text("CURRENT_TIMESTAMP")
+    DateTime,
+    nullable=False,
+    server_default=func.current_timestamp()
+    )
+
+    atualizado_em = Column(
+    DateTime,
+    nullable=True,
+    onupdate=func.current_timestamp()
     )
 
     usuario = relationship("Usuario", backref="notificacoes")

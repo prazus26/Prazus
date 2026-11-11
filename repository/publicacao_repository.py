@@ -1,5 +1,7 @@
 from database import Session
 from model.publicacao import Publicacao
+from model.processo import Processo
+from model.prazo import Prazo
 
 
 def buscar_por_identificador(processo_id, identificador_djen):
@@ -54,5 +56,22 @@ def cadastrar_publicacao(processo_id, identificador_djen,
         db.rollback()
         raise
 
+    finally:
+        db.close()
+
+def buscar_sem_prazo_por_usuario(usuario_id):
+    db = Session()
+
+    try:
+        return db.query(Publicacao).join(
+            Processo,
+            Publicacao.processo_id == Processo.id
+        ).outerjoin(
+            Prazo,
+            Prazo.publicacao_id == Publicacao.id
+        ).filter(
+            Processo.usuario_id == usuario_id,
+            Prazo.id.is_(None)
+        ).all()
     finally:
         db.close()
