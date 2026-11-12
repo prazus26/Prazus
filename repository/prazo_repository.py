@@ -1,5 +1,8 @@
 from database import Session
 from model.prazo import Prazo
+from model.publicacao import Publicacao
+from model.processo import Processo
+
 
 
 def buscar_por_publicacao(publicacao_id):
@@ -50,6 +53,29 @@ def cadastrar_prazo(publicacao_id, dias_prazo,
     except Exception:
         db.rollback()
         raise
+
+    finally:
+        db.close()
+
+def buscar_prazos_do_usuario(usuario_id):
+    db = Session()
+
+    try:
+        return db.query(
+            Prazo.id,
+            Prazo.data_vencimento_atual,
+            Prazo.status,
+            Processo.numero_processo
+        ).join(
+            Publicacao,
+            Prazo.publicacao_id == Publicacao.id
+        ).join(
+            Processo,
+            Publicacao.processo_id == Processo.id
+        ).filter(
+            Processo.usuario_id == usuario_id,
+            Prazo.status == "pendente"
+        ).all()
 
     finally:
         db.close()

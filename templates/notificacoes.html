@@ -1,15 +1,47 @@
+
 {% extends 'baseUsuarioDashboard.html' %}
 
 {% block content_usuario %}
 <div class="notificacoes">
     <h1>NOTIFICAÇÕES</h1>
 
-    <div class="notificacao">
-        <p>Sonia Santana - Processo 0003321-45 vence hoje</p>
-    </div>
-    <div class="notificacao">
-        <p>Bruno Tadeu - Processo 003252-45 vence em 1 dia</p>
-    </div>
-</div>
+    {% if notificacoes %}
 
+        {% for notificacao in notificacoes %}
+
+            <div class="notificacao {% if not notificacao.visualizada %}visualizada{% else %}nao-visualizada{% endif %}">
+
+                <div class="notificacao-conteudo">
+                    <h3>{{ notificacao.titulo }}</h3>
+
+                    <p>{{ notificacao.mensagem }}</p>
+
+                    <small>
+                        {{ notificacao.data_notificacao.strftime('%d/%m/%Y às %H:%M') }}
+                    </small>
+                </div>
+
+                {% if not notificacao.visualizada %}
+                    <form method="POST"
+                          action="{{ url_for('notificacoes.visualizar', notificacao_id=notificacao.id) }}">
+
+                        <button type="submit">
+                            Marcar como visualizada
+                        </button>
+
+                    </form>
+                {% else %}
+                    <span>Visualizada</span>
+                {% endif %}
+
+            </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <p>Você não possui notificações.</p>
+
+    {% endif %}
+</div>
 {% endblock %}

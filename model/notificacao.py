@@ -1,4 +1,3 @@
-
 from sqlalchemy import (
     Column, Integer, String, Text, DateTime,
     Boolean, ForeignKey, text, func
@@ -24,7 +23,7 @@ class Notificacao(Base):
         nullable=True
     )
 
-    chave_evento = Column(String(150), nullable=True)
+    chave_evento = Column(String(150), nullable=False)
 
     titulo = Column(String(150), nullable=False)
 
@@ -39,20 +38,11 @@ class Notificacao(Base):
         server_default=text("0")
     )
 
-    concluido_em = Column(DateTime, nullable=True)
-
     criado_em = Column(
-    DateTime,
-    nullable=False,
-    server_default=func.current_timestamp()
-    )
-
-    atualizado_em = Column(
-    DateTime,
-    nullable=True,
-    onupdate=func.current_timestamp()
+        DateTime,
+        nullable=False,
+        server_default=func.current_timestamp()
     )
 
     usuario = relationship("Usuario", backref="notificacoes")
-
     prazo = relationship("Prazo", backref="notificacoes")

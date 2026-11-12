@@ -1,39 +1,35 @@
+
 import re
+
 
 def identificar_prazo(texto):
     if not texto:
-        return {
-            "identificado": False,
-            "dias": 5,
-            "tipo_contagem": "corridos",
-            "origem": "estimativa_prazus"
-        }
+        return {"identificado": False}
 
-    texto = texto.lower()
+    texto = re.sub(r"\s+", " ", texto.lower())
 
     padroes = [
-        (r"prazo de (\d+) dias úteis", "uteis"),
-        (r"prazo de (\d+) dias corridos", "corridos"),
-        (r"no prazo de (\d+) dias úteis", "uteis"),
-        (r"no prazo de (\d+) dias corridos", "corridos"),
-        (r"(\d+) dias úteis para", "uteis"),
-        (r"(\d+) dias corridos para", "corridos")
+        r"\bprazo\s+de\s+(\d+)(?:\s*\([^)]+\))?\s+dias?\s+(úteis|corridos)\b",
+
+        r"\bno\s+prazo\s+de\s+(\d+)(?:\s*\([^)]+\))?\s+dias?\s+(úteis|corridos)\b",
+
+        r"\bem\s+(\d+)(?:\s*\([^)]+\))?\s+dias?\s+(úteis|corridos)\b",
+
+        r"\b(\d+)(?:\s*\([^)]+\))?\s+dias?\s+(úteis|corridos)\s+para\b"
     ]
 
-    for padrao, tipo in padroes:
+    for padrao in padroes:
         resultado = re.search(padrao, texto)
 
         if resultado:
             return {
                 "identificado": True,
                 "dias": int(resultado.group(1)),
-                "tipo_contagem": tipo,
-                "origem": "djen"
+                "tipo_contagem": resultado.group(2),
+                "origem": "djen",
+                "trecho_identificado": resultado.group(0)
             }
 
     return {
-        "identificado": False,
-        "dias": 5,
-        "tipo_contagem": "corridos",
-        "origem": "estimativa_prazus"
+        "identificado": False
     }
