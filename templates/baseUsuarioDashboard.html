@@ -51,6 +51,11 @@
                     class="nav-link {% if request.path|lower == '/notificações' %}active{% endif %}">
                     <img src="/static/images/iconesSideBarUsuario/notificacoes.png" alt="">
                     Notificações
+                    {% if total_notificacoes > 0 %}
+                    <span class="contador-notificacoes">
+                        {{ total_notificacoes }}
+                    </span>
+                    {% endif %}
                 </a>
 
                 <a href="/Conta" class="nav-link {% if request.path|lower == '/conta' %}active{% endif %}">

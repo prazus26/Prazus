@@ -122,6 +122,15 @@ header {
                 text-decoration: underline;
             }
         }
+
+        .contador-notificacoes {
+            background-color: #AAE6FF;
+            color: var(--preto);
+            border-radius: 50%;
+            padding: 3px 8px;
+            font-size: 13px;
+            margin-left: 5px;
+        }
     }
 
 
@@ -153,6 +162,7 @@ header {
             background-color: #836943 !important;
         }
     }
+
 
     .notificacoes {
         padding: 15px;

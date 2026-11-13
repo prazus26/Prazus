@@ -76,3 +76,15 @@ def marcar_como_visualizada(notificacao_id, usuario_id):
 
     finally:
         db.close()
+
+def contar_notificacoes_nao_visualizadas(usuario_id):
+    db = Session()
+
+    try:
+        return db.query(Notificacao).filter(
+            Notificacao.usuario_id == usuario_id,
+            Notificacao.visualizada == False
+        ).count()
+
+    finally:
+        db.close()

@@ -5,7 +5,8 @@ from repository.prazo_repository import buscar_prazos_do_usuario
 from repository.notificacao_repository import (
     cadastrar_notificacao,
     buscar_notificacoes,
-    marcar_como_visualizada
+    marcar_como_visualizada,
+    contar_notificacoes_nao_visualizadas
 )
 
 
@@ -68,3 +69,6 @@ def listar_notificacoes(usuario_id):
 
 def visualizar_notificacao(notificacao_id, usuario_id):
     return marcar_como_visualizada(notificacao_id, usuario_id)
+
+def contar_nao_visualizadas(usuario_id):
+    return contar_notificacoes_nao_visualizadas(usuario_id)
