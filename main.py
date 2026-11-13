@@ -15,6 +15,8 @@ from dotenv import load_dotenv
 
 from service.usuario_service import buscar_usuario_por_id
 
+from service.agendador_service import iniciar_agendador
+
 
 load_dotenv()
 
@@ -44,8 +46,11 @@ app.register_blueprint(publicadosHoje_bp)
 app.register_blueprint(notificacoes_bp)
 app.register_blueprint(minhaContaUsuario_bp)
 app.register_blueprint(escalaDeCores_bp)
-
 app.register_blueprint(usuario_bp)
 
 if __name__ == "__main__":
+
+    if not app.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+        iniciar_agendador()
+
     app.run(port=9001, debug=True)

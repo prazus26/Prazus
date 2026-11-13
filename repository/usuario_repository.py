@@ -32,3 +32,17 @@ def buscar_por_id(usuario_id):
 
     finally:
         db.close()
+
+
+def buscar_advogados_para_sincronizacao():
+    db = Session()
+
+    try:
+        return db.query(Usuario).filter(
+            Usuario.tipo == "advogado",
+            Usuario.oab_numero.isnot(None),
+            Usuario.oab_uf.isnot(None)
+        ).all()
+
+    finally:
+        db.close()
