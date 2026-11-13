@@ -1,6 +1,6 @@
-from service.agendador_service import agendador
+from service.agendador_service import agendador, iniciar_agendador
 
-agendador.start()
+iniciar_agendador()
 
 trabalho = agendador.get_job("rotina_diaria_prazus")
 

@@ -1,9 +1,15 @@
+import os
 import logging
 from zoneinfo import ZoneInfo
+from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+
 from service.rotina_diaria_service import executar_rotina_diaria
 
-import os
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 os.makedirs("logs", exist_ok=True)
 
@@ -15,8 +21,12 @@ logging.basicConfig(
 )
 
 agendador = BackgroundScheduler(
-    timezone=ZoneInfo("America/Sao_Paulo")
+    timezone=ZoneInfo("America/Sao_Paulo"),
+    jobstores={
+        "default": SQLAlchemyJobStore(url=DATABASE_URL)
+    }
 )
+
 
 def executar_rotina_agendada():
     try:
@@ -47,18 +57,21 @@ def iniciar_agendador():
     if agendador.running:
         return
 
-    agendador.add_job(
-        executar_rotina_agendada,
-        trigger="cron",
-        hour=3,
-        minute=0,
-        id="rotina_diaria_prazus",
-        replace_existing=True,
-        max_instances=1,
-        coalesce=True,
-        misfire_grace_time=3600
-    )
-
     agendador.start()
 
-    logging.info("Agendador da Prazus iniciado. Próxima execução diária às 03:00.")
+    if agendador.get_job("rotina_diaria_prazus") is None:
+        agendador.add_job(
+            executar_rotina_agendada,
+            trigger="cron",
+            hour=3,
+            minute=0,
+            id="rotina_diaria_prazus",
+            max_instances=1,
+            coalesce=True,
+            misfire_grace_time=None
+        )
+
+    logging.info(
+        "Agendador da Prazus iniciado. Próxima execução: %s",
+        agendador.get_job("rotina_diaria_prazus").next_run_time
+    )
