@@ -50,7 +50,11 @@ app.register_blueprint(usuario_bp)
 
 if __name__ == "__main__":
 
-    if not app.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-        iniciar_agendador()
+    iniciar_agendador()
 
-    app.run(port=9001, debug=True)
+    app.run(
+        host="127.0.0.1",
+        port=9001,
+        debug=True,
+        use_reloader=False
+    )

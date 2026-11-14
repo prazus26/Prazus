@@ -1,39 +1,42 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const calendarEl = document.getElementById('calendar');
 
-  if (calendarEl) {
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: 'dayGridMonth',
-      locale: 'pt-br',
+    const calendarEl = document.getElementById('calendar');
 
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,timeGridDay'
-      },
+    if (calendarEl) {
 
-      events: [
-        {
-          title: 'Audiência de Conciliação',
-          start: '2026-11-09',
-          color: '#f89d81'
-        },
-        {
-          title: 'Prazo: Contestação',
-          start: '2026-10-20',
-          color: '#fbd695'
-        }
-      ],
+        const calendar = new FullCalendar.Calendar(calendarEl, {
 
-      dateClick: function (info) {
-        alert('Dia clicado: ' + info.dateStr);
-      },
+            initialView: 'dayGridMonth',
+            locale: 'pt-br',
 
-      eventClick: function (info) {
-        alert('Compromisso: ' + info.event.title);
-      }
-    });
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
 
-    calendar.render();
-  }
+            events: '/api/calendario/eventos',
+
+            dateClick: function (info) {
+                alert('Dia clicado: ' + info.dateStr);
+            },
+
+            eventClick: function (info) {
+
+                const evento = info.event;
+                const processo = evento.extendedProps.numero_processo;
+                const status = evento.extendedProps.status;
+
+                alert(
+                    'Prazo do processo: ' + processo +
+                    '\nData: ' + evento.start.toLocaleDateString('pt-BR') +
+                    '\nStatus: ' + status
+                );
+            }
+
+        });
+
+        calendar.render();
+    }
+
 });

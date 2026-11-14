@@ -1,3 +1,4 @@
+
 import os
 import logging
 from zoneinfo import ZoneInfo
@@ -13,12 +14,23 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 
 os.makedirs("logs", exist_ok=True)
 
-logging.basicConfig(
-    filename="logs/rotina_diaria.log",
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    encoding="utf-8"
-)
+logger = logging.getLogger("prazus.rotina")
+logger.setLevel(logging.INFO)
+logger.propagate = False
+
+if not logger.handlers:
+    arquivo_log = logging.FileHandler(
+        "logs/rotina_diaria.log",
+        encoding="utf-8"
+    )
+
+    formato = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(message)s"
+    )
+
+    arquivo_log.setFormatter(formato)
+    logger.addHandler(arquivo_log)
+
 
 agendador = BackgroundScheduler(
     timezone=ZoneInfo("America/Sao_Paulo"),
@@ -30,17 +42,17 @@ agendador = BackgroundScheduler(
 
 def executar_rotina_agendada():
     try:
-        logging.info("Iniciando rotina automática da Prazus")
+        logger.info("Iniciando rotina automática da Prazus")
 
         resultado = executar_rotina_diaria()
 
-        logging.info(
+        logger.info(
             "Rotina finalizada. Advogados processados: %s",
             resultado["advogados_processados"]
         )
 
         for advogado in resultado["resultados"]:
-            logging.info(
+            logger.info(
                 "Usuário %s | DJEN: %s | Prazos: %s | Notificações: %s | Erros: %s",
                 advogado["usuario_id"],
                 advogado["djen"],
@@ -50,7 +62,7 @@ def executar_rotina_agendada():
             )
 
     except Exception:
-        logging.exception("Erro na rotina automática da Prazus")
+        logger.exception("Erro na rotina automática da Prazus")
 
 
 def iniciar_agendador():
@@ -71,7 +83,7 @@ def iniciar_agendador():
             misfire_grace_time=None
         )
 
-    logging.info(
-        "Agendador da Prazus iniciado. Próxima execução: %s",
+    logger.info(
+        "Agendador iniciado. Próxima execução: %s",
         agendador.get_job("rotina_diaria_prazus").next_run_time
     )
