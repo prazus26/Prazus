@@ -31,5 +31,12 @@ class ConfiguracaoUsuario(Base):
     nullable=True,
     onupdate=func.current_timestamp()
     )
+    limite_urgente = Column(Integer, nullable=False, default=3)
+    limite_atencao = Column(Integer, nullable=False, default=7)
+
+    cor_vencido = Column(String(7), nullable=False, default="#FF8C69")
+    cor_urgente = Column(String(7), nullable=False, default="#FCBF69")
+    cor_atencao = Column(String(7), nullable=False, default="#F3E27A")
+    cor_tranquilo = Column(String(7), nullable=False, default="#ADF3A0")
 
     usuario = relationship("Usuario", backref="configuracoes")

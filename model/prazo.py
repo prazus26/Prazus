@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Date, DateTime, ForeignKey, Enum, func
+from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, Enum, func
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -33,7 +33,10 @@ class Prazo(Base):
     data_inicio_atual = Column(Date, nullable=True)
 
     data_vencimento_original = Column(Date, nullable=True)
-    data_vencimento_atual = Column(Date, nullable=False)
+    data_vencimento_atual = Column(Date, nullable=True)
+    
+    nome_prazo = Column(String(150), nullable=True)
+    alerta_proximidade = Column(Integer, nullable=True)
 
     origem_prazo = Column(
         Enum("djen", "estimativa_prazus"),

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, func
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, func, Enum
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -32,5 +32,12 @@ class Processo(Base):
     nullable=True,
     onupdate=func.current_timestamp()
     )
+    
+    cliente = Column(String(150), nullable=True)
+    vara = Column(
+    Enum("civil", "trabalhista", "federal"),
+    nullable=True
+    )
+    link_processo = Column(String(500), nullable=True)
 
     usuario = relationship("Usuario", backref="processos")

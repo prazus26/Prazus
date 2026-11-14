@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do acompanhamento | Prazus</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 35px;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            color: #292929;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .cabecalho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .acoes {
+            display: flex;
+            gap: 10px;
+        }
+
+        .botao {
+            padding: 11px 18px;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .editar {
+            background: #315b45;
+            color: white;
+        }
+
+        .imprimir {
+            background: #dedede;
+            color: #222;
+        }
+
+        .secao {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .informacoes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .campo span {
+            display: block;
+            color: #777;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .campo strong {
+            overflow-wrap: anywhere;
+        }
+
+        .documento {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+
+            .informacoes {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .nao-imprimir {
+                display: none !important;
+            }
+
+            .secao {
+                box-shadow: none;
+                border: none;
+                padding: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <div class="cabecalho nao-imprimir">
+        <h1>Detalhes do acompanhamento</h1>
+
+        <div class="acoes">
+            <button class="botao imprimir" onclick="window.print()">
+                Imprimir
+            </button>
+
+            <a class="botao editar"
+               href="/prazo/{{ prazo.prazo_id }}/editar">
+                Editar
+            </a>
+        </div>
+    </div>
+
+    <section class="secao">
+        <h2>Informações do processo</h2>
+
+        <div class="informacoes">
+            <div class="campo">
+                <span>Cliente</span>
+                <strong>{{ prazo.cliente or "Não informado" }}</strong>
+            </div>
+
+            <div class="campo">
+                <span>Número do processo</span>
+                <strong>{{ prazo.numero_processo }}</strong>
+            </div>
+
+            <div class="campo">
+                <span>Tribunal</span>
+                <strong>{{ prazo.tribunal or "Não informado" }}</strong>
+            </div>
+
+            <div class="campo">
+                <span>Vara</span>
+                <strong>{{ prazo.vara or "Não informada" }}</strong>
+            </div>
+
+            <div class="campo">
+                <span>Classe</span>
+                <strong>{{ prazo.classe or "Não informada" }}</strong>
+            </div>
+
+            <div class="campo">
+                <span>Assunto</span>
+                <strong>{{ prazo.assunto or "Não informado" }}</strong>
+            </div>
+
+            <div class="campo">
+                <span>Data de disponibilização</span>
+                <strong>{{ prazo.data_disponibilizacao or "Não informada" }}</strong>
+            </div>
+
+            <div class="campo">
+                <span>Data de publicação</span>
+                <strong>{{ prazo.data_publicacao or "Não informada" }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="secao">
+        <h2>Informações do acompanhamento</h2>
+
+        <div class="informacoes">
+            <div class="campo">
+                <span>Nome do prazo</span>
+                <strong>{{ prazo.nome_prazo or "Não informado" }}</strong>
+            </div>
+
+            <div class="campo">
+                <span>Dias configurados</span>
+                <strong>{{ prazo.dias_prazo_atual or "Não definido" }}</strong>
+            </div>
+
+            <div class="campo">
+                <span>Data de início</span>
+                <strong>{{ prazo.data_inicio or "Não definida" }}</strong>
+            </div>
+
+            <div class="campo">
+                <span>Data de vencimento</span>
+                <strong>{{ prazo.data_vencimento or "Sem vencimento" }}</strong>
+            </div>
+
+            <div class="campo">
+                <span>Contagem</span>
+                <strong>{{ prazo.tipo_contagem or "Não definida" }}</strong>
+            </div>
+
+            <div class="campo">
+                <span>Status</span>
+                <strong>{{ prazo.status }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="secao">
+        <h2>Observações da advogada</h2>
+        <p>{{ prazo.observacoes or "Nenhuma observação cadastrada." }}</p>
+
+        {% if prazo.link_processo %}
+            <a href="{{ prazo.link_processo }}" target="_blank" rel="noopener noreferrer">
+                Acessar processo
+            </a>
+        {% endif %}
+    </section>
+
+    <section class="secao">
+        <h2>Documento original do DJEN</h2>
+        <p>
+            <strong>Identificador:</strong>
+            {{ prazo.identificador_djen }}
+        </p>
+
+        <div class="documento">{{ prazo.conteudo_original }}</div>
+    </section>
+</main>
+</body>
+</html>

@@ -2,41 +2,40 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const calendarEl = document.getElementById('calendar');
 
-    if (calendarEl) {
+    if (!calendarEl) return;
 
-        const calendar = new FullCalendar.Calendar(calendarEl, {
+    const calendar = new FullCalendar.Calendar(calendarEl, {
 
-            initialView: 'dayGridMonth',
-            locale: 'pt-br',
+        initialView: 'dayGridMonth',
+        locale: 'pt-br',
+        height: 'auto',
 
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
-            },
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
 
-            events: '/api/calendario/eventos',
+        events: '/api/calendario/eventos',
 
-            dateClick: function (info) {
-                alert('Dia clicado: ' + info.dateStr);
-            },
+        dateClick: function (info) {
+            console.log('Dia selecionado:', info.dateStr);
+        },
 
-            eventClick: function (info) {
+        eventClick: function (info) {
+            info.jsEvent.preventDefault();
 
-                const evento = info.event;
-                const processo = evento.extendedProps.numero_processo;
-                const status = evento.extendedProps.status;
+            const props = info.event.extendedProps;
 
-                alert(
-                    'Prazo do processo: ' + processo +
-                    '\nData: ' + evento.start.toLocaleDateString('pt-BR') +
-                    '\nStatus: ' + status
-                );
+            if (props.prazo_id) {
+                window.location.href = `/prazo/${props.prazo_id}`;
+            } else {
+                window.location.href = `/publicacao/${props.publicacao_id}`;
             }
+        }
 
-        });
+    });
 
-        calendar.render();
-    }
+    calendar.render();
 
 });
