@@ -1,8 +1,9 @@
 from database import Session
+from sqlalchemy import or_
+
 from model.publicacao import Publicacao
 from model.processo import Processo
 from model.prazo import Prazo
-
 
 def buscar_por_identificador(processo_id, identificador_djen):
     db = Session()
@@ -29,13 +30,6 @@ def cadastrar_publicacao(processo_id, identificador_djen,
         ).first()
 
         if existente:
-            existente.data_disponibilizacao = data_disponibilizacao
-            existente.data_publicacao = data_publicacao
-            existente.conteudo_original = conteudo_original
-
-            db.commit()
-            db.refresh(existente)
-
             return existente
 
         nova_publicacao = Publicacao(
@@ -73,5 +67,56 @@ def buscar_sem_prazo_por_usuario(usuario_id):
             Processo.usuario_id == usuario_id,
             Prazo.id.is_(None)
         ).all()
+    finally:
+        db.close()
+
+def buscar_publicacoes_para_identificacao(usuario_id):
+    db = Session()
+
+    try:
+        return (
+            db.query(Publicacao)
+            .join(
+                Processo,
+                Publicacao.processo_id == Processo.id
+            )
+            .outerjoin(
+                Prazo,
+                Prazo.publicacao_id == Publicacao.id
+            )
+            .filter(
+                Processo.usuario_id == usuario_id,
+                or_(
+                    Prazo.id.is_(None),
+                    (
+                        (Prazo.origem_prazo == "estimativa_prazus")
+                        & (Prazo.status == "pendente")
+                    )
+                )
+            )
+            .order_by(Publicacao.id)
+            .all()
+        )
+
+    finally:
+        db.close()
+
+
+def buscar_publicacao_do_usuario_por_djen(
+    usuario_id, identificador_djen
+):
+    db = Session()
+
+    try:
+        return db.query(Publicacao.id).join(
+            Processo,
+            Publicacao.processo_id == Processo.id
+        ).filter(
+            Processo.usuario_id == usuario_id,
+            Publicacao.identificador_djen == str(
+                identificador_djen
+            )
+        ).first()
+
     finally:
         db.close()

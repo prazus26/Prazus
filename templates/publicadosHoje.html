@@ -2,6 +2,211 @@
 
 {% block content_usuario %}
 
-<h1>Publicados Hoje</h1>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/publicadosHoje.css') }}">
+
+<div class="publicados-pagina">
+
+    <div class="publicados-layout">
+
+        <div class="publicados-principal">
+
+            <div class="publicados-navegacao">
+                <div class="publicados-navegacao-data">
+                    <a href="{{ url_for('publicadosHoje.publicadosHoje', data=data_anterior) }}"
+                        aria-label="Dia anterior">‹</a>
+
+                    <a href="{{ url_for('publicadosHoje.publicadosHoje', data=data_proxima) }}"
+                        aria-label="Próximo dia">›</a>
+
+                    <span>{{ data_formatada }}</span>
+                </div>
+
+                <span class="publicados-instrucao">
+                    Navegue entre os dias com as setas
+                </span>
+
+                <form method="GET" action="{{ url_for('publicadosHoje.publicadosHoje') }}"
+                    class="publicados-escolher-data">
+                    <input type="date" name="data" value="{{ data_atual.isoformat() }}" aria-label="Selecionar data"
+                        onchange="this.form.submit()">
+                </form>
+            </div>
+
+            <div class="publicados-listagem">
+
+                {% for publicacao in publicacoes %}
+
+                <article class="publicacao-card
+                    {% if publicacao.status == 'concluido' %}concluido{% endif %}"
+                    style="--cor-publicacao: {{ publicacao.cor }};" data-publicacao-id="{{ publicacao.id }}">
+
+                    <div class="publicacao-informacoes">
+
+                        <div class="publicacao-cliente">
+                            {{ publicacao.cliente or
+                            ('Processo ' ~ publicacao.numero_processo) }}
+                        </div>
+
+                        <div>
+                            Processo {{ publicacao.numero_processo }}
+                        </div>
+
+                        <div>
+                            {% if publicacao.dias_prazo is not none %}
+                            {{ publicacao.dias_prazo }} dias
+                            {% if publicacao.origem_prazo == 'estimativa_prazus' %}
+                            (estimativa)
+                            {% endif %}
+                            {% else %}
+                            Sem prazo identificado
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            {{ publicacao.nome_prazo or 'Publicação DJEN' }}
+                            {% if publicacao.tribunal %}
+                            - {{ publicacao.tribunal }}
+                            {% endif %}
+                        </div>
+
+                    </div>
+
+                    <div class="publicacao-acoes">
+
+                        <a class="publicacao-imprimir"
+                            href="{{ url_for('publicadosHoje.imprimir_uma_publicacao', publicacao_id=publicacao.id) }}"
+                            target="_blank" title="Imprimir publicação" aria-label="Imprimir publicação">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path
+                                    d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                                <path d="M6 14h12v7H6z" />
+                                <path d="M17 12h2" />
+                            </svg>
+                        </a>
+
+                        <button type="button" class="publicacao-marcar" title="Selecionar para impressão"
+                            aria-label="Selecionar para impressão" aria-pressed="false"
+                            onclick="selecionarPublicacao(this)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 12l5 5L19 7" />
+                            </svg>
+                        </button>
+
+                        {% if publicacao.prazo_id
+                        and publicacao.revisao_estado == 'pendente' %}
+
+                        <a class="publicacao-editar"
+                            href="{{ url_for('calendario.detalhes_prazo', prazo_id=publicacao.prazo_id) }}">
+                            Revisar
+                        </a>
+
+                        {% elif publicacao.prazo_id %}
+
+                        <a class="publicacao-editar"
+                            href="{{ url_for('calendario.editar_prazo', prazo_id=publicacao.prazo_id) }}">
+                            Editar
+                        </a>
+
+                        {% else %}
+
+                        <a class="publicacao-editar"
+                            href="{{ url_for('calendario.detalhes_publicacao', publicacao_id=publicacao.id) }}">
+                            Editar
+                        </a>
+
+                        {% endif %}
+
+                    </div>
+
+                </article>
+
+                {% else %}
+
+                <div class="publicados-vazio">
+                    Nenhuma publicação encontrada para
+                    {{ data_formatada }}.
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        <aside class="publicados-lateral">
+
+            <form id="form-impressao" method="POST" target="_blank"
+                action="{{ url_for('publicadosHoje.imprimir_publicacoes') }}">
+
+                <input type="hidden" name="data" value="{{ data_atual.isoformat() }}">
+
+                <input type="hidden" name="modo" id="modo-impressao" value="todos">
+
+                <div id="ids-impressao"></div>
+
+                <button type="button" onclick="imprimirPublicacoes('todos')">
+                    Imprimir tudo
+                </button>
+
+                <button type="button" onclick="imprimirPublicacoes('selecionados')">
+                    Imprimir selecionados
+                </button>
+            </form>
+
+        </aside>
+
+    </div>
+
+</div>
+
+<script>
+    const publicacoesSelecionadas = new Set();
+
+    function selecionarPublicacao(botao) {
+        const card = botao.closest('.publicacao-card');
+        const id = card.dataset.publicacaoId;
+
+        if (publicacoesSelecionadas.has(id)) {
+            publicacoesSelecionadas.delete(id);
+            card.classList.remove('selecionado');
+            botao.setAttribute('aria-pressed', 'false');
+        } else {
+            publicacoesSelecionadas.add(id);
+            card.classList.add('selecionado');
+            botao.setAttribute('aria-pressed', 'true');
+        }
+    }
+
+    function imprimirPublicacoes(modo) {
+        if (
+            modo === 'selecionados' &&
+            publicacoesSelecionadas.size === 0
+        ) {
+            alert('Selecione pelo menos uma publicação.');
+            return;
+        }
+
+        const formulario = document.getElementById('form-impressao');
+        const campoModo = document.getElementById('modo-impressao');
+        const containerIds = document.getElementById('ids-impressao');
+
+        campoModo.value = modo;
+        containerIds.replaceChildren();
+
+        if (modo === 'selecionados') {
+            publicacoesSelecionadas.forEach(id => {
+                const input = document.createElement('input');
+
+                input.type = 'hidden';
+                input.name = 'publicacoes';
+                input.value = id;
+
+                containerIds.appendChild(input);
+            });
+        }
+
+        formulario.submit();
+    }
+</script>
 
 {% endblock %}

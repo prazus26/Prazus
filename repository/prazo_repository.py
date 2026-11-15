@@ -13,16 +13,18 @@ def buscar_por_publicacao(publicacao_id):
     finally:
         db.close()
 
-
 def cadastrar_prazo(publicacao_id, dias_prazo, tipo_contagem,
                     data_inicio, data_vencimento, origem):
 
     db = Session()
 
     try:
-        existente = db.query(Prazo).filter(
-            Prazo.publicacao_id == publicacao_id
-        ).with_for_update().first()
+        existente = (
+            db.query(Prazo)
+            .filter(Prazo.publicacao_id == publicacao_id)
+            .with_for_update()
+            .first()
+        )
 
         if existente:
             if (
@@ -34,18 +36,12 @@ def cadastrar_prazo(publicacao_id, dias_prazo, tipo_contagem,
                 existente.data_inicio_original = data_inicio
                 existente.data_vencimento_original = data_vencimento
 
-                # Preserva alterações personalizadas da advogada.
-                # Só atualiza os campos atuais se ainda estiverem
-                # com os valores da estimativa inicial.
-                estimativa_inicial = (
-                    existente.dias_prazo_atual == 5
-                    and existente.tipo_contagem_atual == "corridos"
-                    and existente.data_inicio_atual is not None
-                    and existente.data_vencimento_atual
-                    == existente.data_inicio_atual + timedelta(days=5)
+                pode_atualizar = (
+                    existente.personalizado_manualmente is False
+                    and existente.revisao_estado != "confirmada"
                 )
 
-                if estimativa_inicial:
+                if pode_atualizar:
                     existente.dias_prazo_atual = dias_prazo
                     existente.tipo_contagem_atual = tipo_contagem
                     existente.data_inicio_atual = data_inicio
@@ -68,12 +64,14 @@ def cadastrar_prazo(publicacao_id, dias_prazo, tipo_contagem,
             data_vencimento_original=data_vencimento,
             data_vencimento_atual=data_vencimento,
             origem_prazo=origem,
-            status="pendente"
+            status="pendente",
+            personalizado_manualmente=False
         )
 
         db.add(novo_prazo)
         db.commit()
         db.refresh(novo_prazo)
+
         return novo_prazo
 
     except Exception:
@@ -83,8 +81,11 @@ def cadastrar_prazo(publicacao_id, dias_prazo, tipo_contagem,
     finally:
         db.close()
 
+
+
 def buscar_prazos_do_usuario(usuario_id):
     db = Session()
+
     try:
         return db.query(
             Publicacao.id,
@@ -94,16 +95,23 @@ def buscar_prazos_do_usuario(usuario_id):
             Processo.numero_processo,
             Processo.cliente,
             Publicacao.data_publicacao,
-            Publicacao.data_disponibilizacao
+            Publicacao.data_disponibilizacao,
+            Prazo.nome_prazo,
+            Prazo.origem_prazo
+        ).join(
+            Publicacao,
+            Prazo.publicacao_id == Publicacao.id
         ).join(
             Processo,
             Publicacao.processo_id == Processo.id
-        ).outerjoin(
-            Prazo,
-            Prazo.publicacao_id == Publicacao.id
         ).filter(
-            Processo.usuario_id == usuario_id
+            Processo.usuario_id == usuario_id,
+            Prazo.status == "pendente",
+            Prazo.data_vencimento_atual.isnot(None)
+        ).order_by(
+            Prazo.data_vencimento_atual
         ).all()
+
     finally:
         db.close()
 
@@ -131,7 +139,6 @@ def buscar_detalhes_prazo(prazo_id, usuario_id):
 
     finally:
         db.close()
-
 
 def buscar_detalhes_publicacao(publicacao_id, usuario_id):
     db = Session()
@@ -209,5 +216,171 @@ def montar_detalhes(prazo, publicacao, processo):
         "identificador_djen": publicacao.identificador_djen,
         "data_disponibilizacao": publicacao.data_disponibilizacao,
         "data_publicacao": publicacao.data_publicacao,
-        "conteudo_original": publicacao.conteudo_original
+        "conteudo_original": publicacao.conteudo_original,
+        "dias_sugeridos": prazo.dias_sugeridos,
+        "trecho_sugerido": prazo.trecho_sugerido,
+        "revisao_estado": prazo.revisao_estado
     }
+
+def alterar_exibicao_estimativa(prazo_id, usuario_id, exibir):
+    db = Session()
+
+    try:
+        prazo = db.query(Prazo).join(
+            Publicacao, Prazo.publicacao_id == Publicacao.id
+        ).join(
+            Processo, Publicacao.processo_id == Processo.id
+        ).filter(
+            Prazo.id == prazo_id,
+            Processo.usuario_id == usuario_id,
+            Prazo.origem_prazo == "estimativa_prazus"
+        ).first()
+
+        if not prazo:
+            return False
+
+        prazo.exibir_calendario = exibir
+        db.commit()
+        return True
+
+    except Exception:
+        db.rollback()
+        raise
+
+    finally:
+        db.close()
+
+
+
+def atualizar_dados_prazo(prazo_id, usuario_id, dados):
+    db = Session()
+
+    try:
+        resultado = db.query(
+            Prazo, Publicacao, Processo
+        ).join(
+            Publicacao,
+            Prazo.publicacao_id == Publicacao.id
+        ).join(
+            Processo,
+            Publicacao.processo_id == Processo.id
+        ).filter(
+            Prazo.id == prazo_id,
+            Processo.usuario_id == usuario_id
+        ).with_for_update().first()
+
+        if not resultado:
+            return False
+
+        prazo, publicacao, processo = resultado
+
+        numero_existente = db.query(Processo.id).filter(
+            Processo.usuario_id == usuario_id,
+            Processo.numero_processo == dados["numero_processo"],
+            Processo.id != processo.id
+        ).first()
+
+        if numero_existente:
+            raise ValueError(
+                "Esse número de processo já está cadastrado."
+            )
+
+        processo.cliente = dados["cliente"]
+        processo.numero_processo = dados["numero_processo"]
+        processo.tribunal = dados["tribunal"]
+        processo.vara = dados["vara"]
+        processo.link_processo = dados["link_processo"]
+
+        publicacao.data_publicacao = dados["data_publicacao"]
+
+        prazo.data_vencimento_atual = dados["data_vencimento"]
+        prazo.alerta_proximidade = dados["alerta_proximidade"]
+        prazo.personalizado_manualmente = True
+
+        if (
+            prazo.tipo_contagem_atual == "corridos"
+            and prazo.data_inicio_atual
+            and dados["data_vencimento"]
+        ):
+            prazo.dias_prazo_atual = (
+                dados["data_vencimento"] - prazo.data_inicio_atual
+            ).days
+
+        db.commit()
+        return True
+
+    except Exception:
+        db.rollback()
+        raise
+
+    finally:
+        db.close()
+
+def registrar_sugestao_prazo(publicacao_id, dias, trecho):
+    db = Session()
+
+    try:
+        prazo = db.query(Prazo).filter(
+            Prazo.publicacao_id == publicacao_id,
+            Prazo.origem_prazo == "estimativa_prazus",
+            Prazo.status == "pendente"
+        ).with_for_update().first()
+
+        if not prazo:
+            return False
+
+        if prazo.revisao_estado in ("confirmada", "descartada"):
+            return False
+
+        prazo.dias_sugeridos = dias
+        prazo.trecho_sugerido = trecho
+        prazo.revisao_estado = "pendente"
+
+        db.commit()
+        return True
+
+    except Exception:
+        db.rollback()
+        raise
+
+    finally:
+        db.close()
+
+
+def confirmar_sugestao_prazo(prazo_id, usuario_id, dados):
+    db = Session()
+
+    try:
+        resultado = db.query(Prazo).join(
+            Publicacao, Prazo.publicacao_id == Publicacao.id
+        ).join(
+            Processo, Publicacao.processo_id == Processo.id
+        ).filter(
+            Prazo.id == prazo_id,
+            Processo.usuario_id == usuario_id,
+            Prazo.origem_prazo == "estimativa_prazus",
+            Prazo.revisao_estado == "pendente",
+            Prazo.status == "pendente"
+        ).with_for_update().first()
+
+        if not resultado:
+            return False
+
+        resultado.dias_prazo_atual = dados["dias"]
+        resultado.tipo_contagem_atual = dados["tipo_contagem"]
+        resultado.data_inicio_atual = dados["data_inicio"]
+        resultado.data_vencimento_atual = dados["data_vencimento"]
+
+        resultado.revisao_estado = "confirmada"
+        resultado.exibir_calendario = True
+        resultado.personalizado_manualmente = True
+
+        db.commit()
+        return True
+
+    except Exception:
+        db.rollback()
+        raise
+
+    finally:
+        db.close()

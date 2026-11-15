@@ -1,7 +1,12 @@
 
-from repository.publicacao_repository import buscar_sem_prazo_por_usuario
+from repository.publicacao_repository import (
+    buscar_publicacoes_para_identificacao
+)
 from repository.feriado_repository import buscar_feriados_por_uf
-from repository.prazo_repository import cadastrar_prazo
+from repository.prazo_repository import (
+    cadastrar_prazo,
+    registrar_sugestao_prazo
+)
 
 from service.identificacao_prazo_service import identificar_prazo
 from service.calculo_prazo_service import (
@@ -12,7 +17,9 @@ from service.calculo_prazo_service import (
 
 
 def gerar_prazos_advogado(usuario_id, uf):
-    publicacoes = buscar_sem_prazo_por_usuario(usuario_id)
+    publicacoes = buscar_publicacoes_para_identificacao(
+        usuario_id
+    )
 
     feriados = {
         resultado[0]
@@ -21,6 +28,7 @@ def gerar_prazos_advogado(usuario_id, uf):
 
     gerados = 0
     sem_prazo = 0
+    revisao_necessaria = 0
     erros = []
 
     for publicacao in publicacoes:
@@ -30,7 +38,17 @@ def gerar_prazos_advogado(usuario_id, uf):
             )
 
             if not identificacao["identificado"]:
-                sem_prazo += 1
+                if identificacao.get("revisao_necessaria"):
+                    registrar_sugestao_prazo(
+                        publicacao_id=publicacao.id,
+                        dias=identificacao["dias_sugeridos"],
+                        trecho=identificacao["trecho_identificado"]
+                )
+
+                    revisao_necessaria += 1
+                else:
+                    sem_prazo += 1
+
                 continue
 
             data_publicacao = publicacao.data_publicacao
@@ -74,5 +92,6 @@ def gerar_prazos_advogado(usuario_id, uf):
         "publicacoes_analisadas": len(publicacoes),
         "prazos_gerados": gerados,
         "sem_prazo_identificado": sem_prazo,
+        "revisao_necessaria": revisao_necessaria,
         "erros": erros
     }

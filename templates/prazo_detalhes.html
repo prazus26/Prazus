@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -114,126 +114,147 @@
             }
         }
     </style>
-</head>
+
 <body>
-<main>
-    <div class="cabecalho nao-imprimir">
-        <h1>Detalhes do acompanhamento</h1>
+    <main>
+        <div class="cabecalho nao-imprimir">
+            <h1>Detalhes do acompanhamento</h1>
 
-        <div class="acoes">
-            <button class="botao imprimir" onclick="window.print()">
-                Imprimir
-            </button>
+            <div class="acoes">
+                <button class="botao imprimir" onclick="window.print()">
+                    Imprimir
+                </button>
 
-            <a class="botao editar"
-               href="/prazo/{{ prazo.prazo_id }}/editar">
-                Editar
-            </a>
+                {% if prazo.prazo_id %}
+                <a href="{{ url_for('calendario.editar_prazo', prazo_id=prazo.prazo_id) }}">
+                    Editar informações
+                </a>
+                {% endif %}
+            </div>
+            {% if prazo.prazo_id and prazo.origem_prazo == "estimativa_prazus" %}
+            <form method="POST"
+                action="{{ url_for('calendario.alternar_estimativa_calendario', prazo_id=prazo.prazo_id) }}">
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                {% if prazo.exibir_calendario %}
+                <input type="hidden" name="exibir" value="0">
+                <button type="submit">
+                    Remover do calendário
+                </button>
+                {% else %}
+                <input type="hidden" name="exibir" value="1">
+                <button type="submit">
+                    Adicionar ao calendário
+                </button>
+                {% endif %}
+            </form>
+            {% endif %}
         </div>
-    </div>
 
-    <section class="secao">
-        <h2>Informações do processo</h2>
+        <section class="secao">
+            <h2>Informações do processo</h2>
 
-        <div class="informacoes">
-            <div class="campo">
-                <span>Cliente</span>
-                <strong>{{ prazo.cliente or "Não informado" }}</strong>
+            <div class="informacoes">
+                <div class="campo">
+                    <span>Cliente</span>
+                    <strong>{{ prazo.cliente or "Não informado" }}</strong>
+                </div>
+
+                <div class="campo">
+                    <span>Número do processo</span>
+                    <strong>{{ prazo.numero_processo }}</strong>
+                </div>
+
+                <div class="campo">
+                    <span>Tribunal</span>
+                    <strong>{{ prazo.tribunal or "Não informado" }}</strong>
+                </div>
+
+                <div class="campo">
+                    <span>Vara</span>
+                    <strong>{{ prazo.vara or "Não informada" }}</strong>
+                </div>
+
+                <div class="campo">
+                    <span>Classe</span>
+                    <strong>{{ prazo.classe or "Não informada" }}</strong>
+                </div>
+
+                <div class="campo">
+                    <span>Assunto</span>
+                    <strong>{{ prazo.assunto or "Não informado" }}</strong>
+                </div>
+
+                <div class="campo">
+                    <span>Data de disponibilização</span>
+                    <strong>{{ prazo.data_disponibilizacao or "Não informada" }}</strong>
+                </div>
+
+                <div class="campo">
+                    <span>Data de publicação</span>
+                    <strong>{{ prazo.data_publicacao or "Não informada" }}</strong>
+                </div>
             </div>
+        </section>
 
-            <div class="campo">
-                <span>Número do processo</span>
-                <strong>{{ prazo.numero_processo }}</strong>
+        <section class="secao">
+            <h2>Informações do acompanhamento</h2>
+
+            <div class="informacoes">
+                <div class="campo">
+                    <span>Nome do prazo</span>
+                    <strong>{{ prazo.nome_prazo or "Não informado" }}</strong>
+                </div>
+
+                <div class="campo">
+                    <span>Dias configurados</span>
+                    <strong>{{ prazo.dias_prazo_atual or "Não definido" }}</strong>
+                </div>
+
+                <div class="campo">
+                    <span>Data de início</span>
+                    <strong>{{ prazo.data_inicio or "Não definida" }}</strong>
+                </div>
+
+                <div class="campo">
+                    <span>Data de vencimento</span>
+                    <strong>{{ prazo.data_vencimento or "Sem vencimento" }}</strong>
+                </div>
+
+                <div class="campo">
+                    <span>Contagem</span>
+                    <strong>{{ prazo.tipo_contagem or "Não definida" }}</strong>
+                </div>
+
+                <div class="campo">
+                    <span>Status</span>
+                    <strong>{{ prazo.status }}</strong>
+                </div>
             </div>
+        </section>
 
-            <div class="campo">
-                <span>Tribunal</span>
-                <strong>{{ prazo.tribunal or "Não informado" }}</strong>
-            </div>
+        <section class="secao">
+            <h2>Observações da advogada</h2>
+            <p>{{ prazo.observacoes or "Nenhuma observação cadastrada." }}</p>
 
-            <div class="campo">
-                <span>Vara</span>
-                <strong>{{ prazo.vara or "Não informada" }}</strong>
-            </div>
-
-            <div class="campo">
-                <span>Classe</span>
-                <strong>{{ prazo.classe or "Não informada" }}</strong>
-            </div>
-
-            <div class="campo">
-                <span>Assunto</span>
-                <strong>{{ prazo.assunto or "Não informado" }}</strong>
-            </div>
-
-            <div class="campo">
-                <span>Data de disponibilização</span>
-                <strong>{{ prazo.data_disponibilizacao or "Não informada" }}</strong>
-            </div>
-
-            <div class="campo">
-                <span>Data de publicação</span>
-                <strong>{{ prazo.data_publicacao or "Não informada" }}</strong>
-            </div>
-        </div>
-    </section>
-
-    <section class="secao">
-        <h2>Informações do acompanhamento</h2>
-
-        <div class="informacoes">
-            <div class="campo">
-                <span>Nome do prazo</span>
-                <strong>{{ prazo.nome_prazo or "Não informado" }}</strong>
-            </div>
-
-            <div class="campo">
-                <span>Dias configurados</span>
-                <strong>{{ prazo.dias_prazo_atual or "Não definido" }}</strong>
-            </div>
-
-            <div class="campo">
-                <span>Data de início</span>
-                <strong>{{ prazo.data_inicio or "Não definida" }}</strong>
-            </div>
-
-            <div class="campo">
-                <span>Data de vencimento</span>
-                <strong>{{ prazo.data_vencimento or "Sem vencimento" }}</strong>
-            </div>
-
-            <div class="campo">
-                <span>Contagem</span>
-                <strong>{{ prazo.tipo_contagem or "Não definida" }}</strong>
-            </div>
-
-            <div class="campo">
-                <span>Status</span>
-                <strong>{{ prazo.status }}</strong>
-            </div>
-        </div>
-    </section>
-
-    <section class="secao">
-        <h2>Observações da advogada</h2>
-        <p>{{ prazo.observacoes or "Nenhuma observação cadastrada." }}</p>
-
-        {% if prazo.link_processo %}
+            {% if prazo.link_processo %}
             <a href="{{ prazo.link_processo }}" target="_blank" rel="noopener noreferrer">
                 Acessar processo
             </a>
-        {% endif %}
-    </section>
+            {% endif %}
+        </section>
 
-    <section class="secao">
-        <h2>Documento original do DJEN</h2>
-        <p>
-            <strong>Identificador:</strong>
-            {{ prazo.identificador_djen }}
-        </p>
+        <section class="secao">
+            <h2>Documento original do DJEN</h2>
+            <p>
+                <strong>Identificador:</strong>
+                {{ prazo.identificador_djen }}
+            </p>
 
-        <div class="documento">{{ prazo.conteudo_original }}</div>
-    </section>
-</main>
+            <div class="documento">{{ prazo.conteudo_original }}</div>
+        </section>
+    </main>
 </body>
+
 </html>

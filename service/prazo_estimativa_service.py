@@ -1,36 +1,69 @@
 
-from datetime import timedelta
-
 from database import Session
+
 from model.processo import Processo
 from model.publicacao import Publicacao
 from model.prazo import Prazo
 
+from repository.feriado_repository import buscar_feriados_por_uf
 
-def criar_estimativas_pendentes():
+from service.calculo_prazo_service import (
+    calcular_data_publicacao,
+    calcular_data_inicio,
+    calcular_vencimento
+)
+
+
+def criar_estimativas_pendentes(usuario_id, uf):
     db = Session()
 
     try:
+        feriados = {
+            resultado[0]
+            for resultado in buscar_feriados_por_uf(uf)
+        }
+
         publicacoes = (
             db.query(Publicacao)
-            .join(Processo, Publicacao.processo_id == Processo.id)
-            .outerjoin(Prazo, Prazo.publicacao_id == Publicacao.id)
-            .filter(Prazo.id.is_(None))
+            .join(
+                Processo,
+                Publicacao.processo_id == Processo.id
+            )
+            .outerjoin(
+                Prazo,
+                Prazo.publicacao_id == Publicacao.id
+            )
+            .filter(
+                Processo.usuario_id == usuario_id,
+                Prazo.id.is_(None)
+            )
             .all()
         )
 
         quantidade = 0
 
         for publicacao in publicacoes:
-            data_inicio = (
-                publicacao.data_publicacao
-                or publicacao.data_disponibilizacao
+            data_publicacao = publicacao.data_publicacao
+
+            if not data_publicacao:
+                data_publicacao = calcular_data_publicacao(
+                    publicacao.data_disponibilizacao,
+                    feriados
+                )
+
+            data_inicio = calcular_data_inicio(
+                data_publicacao,
+                feriados
             )
 
-            if not data_inicio:
-                continue
+            vencimento = calcular_vencimento(
+                data_inicio=data_inicio,
+                dias=5,
+                tipo_contagem="corridos",
+                feriados=feriados
+            )
 
-            novo_prazo = Prazo(
+            estimativa = Prazo(
                 publicacao_id=publicacao.id,
                 dias_prazo_original=None,
                 dias_prazo_atual=5,
@@ -39,14 +72,14 @@ def criar_estimativas_pendentes():
                 data_inicio_original=None,
                 data_inicio_atual=data_inicio,
                 data_vencimento_original=None,
-                data_vencimento_atual=data_inicio + timedelta(days=5),
+                data_vencimento_atual=vencimento,
                 origem_prazo="estimativa_prazus",
                 status="pendente",
                 nome_prazo="Prazo estimado",
                 alerta_proximidade=None
             )
 
-            db.add(novo_prazo)
+            db.add(estimativa)
             quantidade += 1
 
         db.commit()

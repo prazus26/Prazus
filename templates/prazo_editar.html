@@ -1,0 +1,225 @@
+
+{% extends 'baseUsuarioDashboard.html' %}
+
+{% block content_usuario %}
+
+{% if prazo.revisao_estado == 'pendente'
+      and prazo.origem_prazo == 'estimativa_prazus' %}
+
+<section class="revisao-prazo">
+
+    <h2>Prazo encontrado para revisão</h2>
+
+    <p>
+        O documento menciona
+        <strong>{{ prazo.dias_sugeridos }} dias</strong>.
+        Confira se este prazo se aplica ao processo
+        antes de confirmar.
+    </p>
+
+    <blockquote>
+        {{ prazo.trecho_sugerido }}
+    </blockquote>
+
+    <form method="POST"
+          action="{{ url_for('calendario.confirmar_prazo_sugerido', prazo_id=prazo.prazo_id) }}">
+
+        <input type="hidden"
+               name="csrf_token"
+               value="{{ csrf_token }}">
+
+        <label for="dias-revisao">Quantidade de dias</label>
+        <input id="dias-revisao"
+               type="number"
+               name="dias"
+               min="1"
+               max="3650"
+               value="{{ prazo.dias_sugeridos }}"
+               required>
+
+        <label for="contagem-revisao">Tipo de contagem</label>
+        <select id="contagem-revisao"
+                name="tipo_contagem"
+                required>
+            <option value="">Selecione</option>
+            <option value="uteis">Dias úteis</option>
+            <option value="corridos">Dias corridos</option>
+        </select>
+
+        <label for="inicio-revisao">Data de início</label>
+        <input id="inicio-revisao"
+               type="date"
+               name="data_inicio"
+               value="{{ prazo.data_inicio.isoformat() if prazo.data_inicio else '' }}"
+               required>
+
+        <label for="vencimento-revisao">Data de vencimento</label>
+        <input id="vencimento-revisao"
+               type="date"
+               name="data_vencimento"
+               required>
+
+        <button type="submit">
+            Confirmar e adicionar à agenda
+        </button>
+
+    </form>
+
+</section>
+
+{% elif prazo.revisao_estado == 'confirmada' %}
+
+<p class="prazo-confirmado">
+    Prazo revisado e confirmado pela advogada.
+</p>
+
+{% endif %}
+
+<div class="pagina-editar">
+
+    <div class="editar-topo">
+        <h1>EDITAR</h1>
+
+        <a href="{{ url_for('calendario.detalhes_prazo', prazo_id=prazo.prazo_id) }}"
+           class="editar-voltar">
+            voltar
+        </a>
+    </div>
+
+    {% if erros %}
+        <div class="editar-erros">
+            {% for erro in erros %}
+                <p>{{ erro }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form
+        method="POST"
+        action="{{ url_for('calendario.editar_prazo', prazo_id=prazo.prazo_id) }}"
+        class="formulario-editar"
+    >
+
+        <input
+            type="hidden"
+            name="csrf_token"
+            value="{{ csrf_token }}"
+        >
+
+        <div class="editar-campo">
+            <label for="cliente">Cliente</label>
+            <input
+                type="text"
+                id="cliente"
+                name="cliente"
+                maxlength="150"
+                value="{{ dados.cliente }}"
+            >
+        </div>
+
+        <div class="editar-campo">
+            <label for="numero_processo">Número do Processo</label>
+            <input
+                type="text"
+                id="numero_processo"
+                name="numero_processo"
+                maxlength="25"
+                required
+                value="{{ dados.numero_processo }}"
+            >
+        </div>
+
+        <div class="editar-campo">
+            <label>Tribunal / Vara</label>
+
+            <div class="editar-tribunal-vara">
+                <input
+                    type="text"
+                    name="tribunal"
+                    maxlength="30"
+                    placeholder="Tribunal"
+                    value="{{ dados.tribunal }}"
+                >
+
+                <select name="vara">
+                    <option value="">Vara</option>
+
+                    <option value="civil"
+                        {% if dados.vara == 'civil' %}selected{% endif %}>
+                        Cível
+                    </option>
+
+                    <option value="trabalhista"
+                        {% if dados.vara == 'trabalhista' %}selected{% endif %}>
+                        Trabalhista
+                    </option>
+
+                    <option value="federal"
+                        {% if dados.vara == 'federal' %}selected{% endif %}>
+                        Federal
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <div class="editar-campo">
+            <label for="link_processo">Link do Processo</label>
+            <input
+                type="url"
+                id="link_processo"
+                name="link_processo"
+                maxlength="500"
+                value="{{ dados.link_processo }}"
+                placeholder="https://"
+            >
+        </div>
+
+        <div class="editar-campo editar-data-primeira">
+            <label for="data_publicacao">Data da publicação</label>
+            <input
+                type="date"
+                id="data_publicacao"
+                name="data_publicacao"
+                value="{{ dados.data_publicacao }}"
+            >
+        </div>
+
+        <div class="editar-campo">
+            <label for="data_vencimento">Data de vencimento</label>
+            <input
+                type="date"
+                id="data_vencimento"
+                name="data_vencimento"
+                required
+                value="{{ dados.data_vencimento }}"
+            >
+        </div>
+
+        <div class="editar-campo">
+            <label for="data_alerta">Alerta de proximidade</label>
+            <input
+                type="date"
+                id="data_alerta"
+                name="data_alerta"
+                value="{{ dados.data_alerta }}"
+            >
+        </div>
+
+        <div class="editar-botoes">
+            <button type="submit" class="editar-salvar">
+                SALVAR ALTERAÇÕES
+            </button>
+
+            <a
+                href="{{ url_for('calendario.detalhes_prazo', prazo_id=prazo.prazo_id) }}"
+                class="editar-cancelar"
+            >
+                CANCELAR
+            </a>
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

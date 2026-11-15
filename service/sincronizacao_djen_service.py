@@ -2,8 +2,10 @@ from datetime import date
 
 from service.djen_service import consultar_publicacoes
 from repository.processo_repository import cadastrar_processo
-from repository.publicacao_repository import cadastrar_publicacao
-
+from repository.publicacao_repository import (
+    cadastrar_publicacao,
+    buscar_publicacao_do_usuario_por_djen
+)
 
 def sincronizar_advogado(usuario_id, oab, uf, data_inicio, data_fim):
 
@@ -24,7 +26,17 @@ def sincronizar_advogado(usuario_id, oab, uf, data_inicio, data_fim):
             if not pub.get("ativo", True):
                 ignoradas += 1
                 continue
+            identificador = pub.get("id")
 
+            if identificador is not None:
+                existente = buscar_publicacao_do_usuario_por_djen(
+                usuario_id,
+                identificador
+                )
+
+            if existente:
+                ignoradas += 1
+                continue
             numero_processo = (
                 pub.get("numeroprocessocommascara")
                 or pub.get("numero_processo")

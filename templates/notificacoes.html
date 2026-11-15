@@ -2,46 +2,108 @@
 {% extends 'baseUsuarioDashboard.html' %}
 
 {% block content_usuario %}
+
 <div class="notificacoes">
-    <h1>NOTIFICAÇÕES</h1>
 
-    {% if notificacoes %}
+    <div class="notificacoes-topo">
+        <h1>NOTIFICAÇÕES</h1>
 
-        {% for notificacao in notificacoes %}
+        {% if total_notificacoes > 0 %}
+            <span class="notificacoes-contador">
+                {{ total_notificacoes }}
+                não visualizada{% if total_notificacoes != 1 %}s{% endif %}
+            </span>
+        {% endif %}
+    </div>
 
-            <div class="notificacao {% if not notificacao.visualizada %}visualizada{% else %}nao-visualizada{% endif %}">
+    <div class="notificacoes-lista">
 
-                <div class="notificacao-conteudo">
-                    <h3>{{ notificacao.titulo }}</h3>
+        {% if notificacoes %}
 
-                    <p>{{ notificacao.mensagem }}</p>
+            {% for notificacao in notificacoes %}
 
-                    <small>
-                        {{ notificacao.data_notificacao.strftime('%d/%m/%Y às %H:%M') }}
-                    </small>
-                </div>
+                <article class="notificacao
+                    {% if notificacao.visualizada %}
+                        visualizada
+                    {% else %}
+                        nao-visualizada
+                    {% endif %}">
 
-                {% if not notificacao.visualizada %}
-                    <form method="POST"
-                          action="{{ url_for('notificacoes.visualizar', notificacao_id=notificacao.id) }}">
+                    <div class="notificacao-conteudo">
 
-                        <button type="submit">
-                            Marcar como visualizada
-                        </button>
+                        <div class="notificacao-cabecalho">
 
-                    </form>
-                {% else %}
-                    <span>Visualizada</span>
-                {% endif %}
+                            <h3>{{ notificacao.titulo }}</h3>
 
+                            {% if not notificacao.visualizada %}
+                                <span class="notificacao-indicador"
+                                      title="Não visualizada">
+                                </span>
+                            {% endif %}
+
+                        </div>
+
+                        <p class="notificacao-mensagem">
+                            {{ notificacao.mensagem }}
+                        </p>
+
+                        <small class="notificacao-data">
+                            {{ notificacao.data_notificacao.strftime('%d/%m/%Y às %H:%M') }}
+                        </small>
+
+                        <div class="notificacao-acoes">
+
+                            {% if notificacao.prazo_id %}
+
+                                <a class="notificacao-detalhes"
+                                   href="{{ url_for('calendario.detalhes_prazo', prazo_id=notificacao.prazo_id) }}">
+                                    Ver detalhes
+                                </a>
+
+                            {% endif %}
+
+                            {% if not notificacao.visualizada %}
+
+                                <form method="POST"
+                                      action="{{ url_for('notificacoes.visualizar', notificacao_id=notificacao.id) }}">
+
+                                    <input type="hidden"
+                                           name="csrf_token"
+                                           value="{{ csrf_token }}">
+
+                                    <button type="submit"
+                                            class="notificacao-marcar">
+                                        Marcar como visualizada
+                                    </button>
+
+                                </form>
+
+                            {% else %}
+
+                                <span class="notificacao-lida">
+                                    ✓ Visualizada
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div class="notificacoes-vazio">
+                <p>Você não possui notificações.</p>
             </div>
 
-        {% endfor %}
+        {% endif %}
 
-    {% else %}
+    </div>
 
-        <p>Você não possui notificações.</p>
-
-    {% endif %}
 </div>
+
 {% endblock %}

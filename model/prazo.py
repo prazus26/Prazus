@@ -1,10 +1,17 @@
-from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, Enum, func
+from sqlalchemy import Column, Integer, String, Text, Boolean, Date, DateTime, ForeignKey, Enum, func
 from sqlalchemy.orm import relationship
 from database import Base
 
 
 class Prazo(Base):
     __tablename__ = "prazos"
+    dias_sugeridos = Column(Integer, nullable=True)
+    trecho_sugerido = Column(Text, nullable=True)
+
+    revisao_estado = Column(
+    Enum("pendente", "confirmada", "descartada"),
+    nullable=True
+    )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
 
@@ -37,6 +44,14 @@ class Prazo(Base):
     
     nome_prazo = Column(String(150), nullable=True)
     alerta_proximidade = Column(Integer, nullable=True)
+
+    exibir_calendario = Column(Boolean, nullable=False, default=False)
+    
+    personalizado_manualmente = Column(
+    Boolean,
+    nullable=True,
+    default=False
+)
 
     origem_prazo = Column(
         Enum("djen", "estimativa_prazus"),
