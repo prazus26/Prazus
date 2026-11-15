@@ -97,7 +97,9 @@ def buscar_prazos_do_usuario(usuario_id):
             Publicacao.data_publicacao,
             Publicacao.data_disponibilizacao,
             Prazo.nome_prazo,
-            Prazo.origem_prazo
+            Prazo.origem_prazo,
+            Prazo.personalizado_manualmente,
+            Prazo.revisao_estado
         ).join(
             Publicacao,
             Prazo.publicacao_id == Publicacao.id
@@ -219,7 +221,8 @@ def montar_detalhes(prazo, publicacao, processo):
         "conteudo_original": publicacao.conteudo_original,
         "dias_sugeridos": prazo.dias_sugeridos,
         "trecho_sugerido": prazo.trecho_sugerido,
-        "revisao_estado": prazo.revisao_estado
+        "revisao_estado": prazo.revisao_estado,
+        "personalizado_manualmente": prazo.personalizado_manualmente
     }
 
 def alterar_exibicao_estimativa(prazo_id, usuario_id, exibir):

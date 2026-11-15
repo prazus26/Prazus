@@ -26,6 +26,7 @@ def buscar_prazos_para_notificacao(usuario_id):
                 Prazo.alerta_proximidade,
                 Prazo.origem_prazo,
                 Prazo.revisao_estado,
+                Prazo.personalizado_manualmente,
                 Processo.numero_processo
             )
             .join(
@@ -65,8 +66,18 @@ def gerar_notificacoes(usuario_id):
             alerta_proximidade,
             origem_prazo,
             revisao_estado,
+            personalizado_manualmente,
             numero_processo
         ) = prazo
+
+        # Alertar vencimentos de estimativas somente quando a pessoa os
+        # personalizou ou confirmou. As demais são itens de triagem.
+        if (
+            origem_prazo == "estimativa_prazus"
+            and personalizado_manualmente is not True
+            and revisao_estado != "confirmada"
+        ):
+            continue
 
         dias_restantes = (vencimento - hoje).days
 
@@ -104,7 +115,9 @@ def gerar_notificacoes(usuario_id):
             continue
 
         if origem_prazo == "estimativa_prazus":
-            descricao += " (estimativa provisória do Prazus)"
+            descricao += " (data personalizada ou confirmada; confira o processo)"
+        else:
+            descricao += " (data extraída; confira o processo)"
 
         if revisao_estado == "pendente":
             descricao += " — revisão necessária"

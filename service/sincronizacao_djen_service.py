@@ -27,6 +27,7 @@ def sincronizar_advogado(usuario_id, oab, uf, data_inicio, data_fim):
                 ignoradas += 1
                 continue
             identificador = pub.get("id")
+            existente = None
 
             if identificador is not None:
                 existente = buscar_publicacao_do_usuario_por_djen(

@@ -49,17 +49,6 @@ def executar_rotina_diaria():
             )
 
         try:
-            resultado["prazos"] = gerar_prazos_advogado(
-                advogado.id,
-                advogado.oab_uf
-            )
-
-        except Exception as erro:
-            resultado["erros"].append(
-                f"Prazos: {erro}"
-            )
-
-        try:
             resultado["estimativas_criadas"] = (
                 criar_estimativas_pendentes(
                     advogado.id,
@@ -70,6 +59,17 @@ def executar_rotina_diaria():
         except Exception as erro:
             resultado["erros"].append(
                 f"Estimativas: {erro}"
+            )
+
+        try:
+            resultado["prazos"] = gerar_prazos_advogado(
+                advogado.id,
+                advogado.oab_uf
+            )
+
+        except Exception as erro:
+            resultado["erros"].append(
+                f"Prazos: {erro}"
             )
 
         try:

@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
         initialView: 'dayGridMonth',
         locale: 'pt-br',
         height: 'auto',
+        dayMaxEvents: 3,
 
         headerToolbar: {
             left: 'prev,next today',
@@ -34,46 +35,43 @@ document.addEventListener('DOMContentLoaded', function () {
         },
 
         eventContent: function (info) {
-            const evento = info.event;
-            const props = evento.extendedProps;
-
+            const props = info.event.extendedProps;
             const card = document.createElement('div');
             card.className = 'prazo-card';
 
+            const classe = document.createElement('small');
+            classe.textContent = props.tipo === 'triagem'
+                ? 'PUBLICAÇÃO • REVISAR'
+                : props.tipo === 'prazo_personalizado'
+                    ? 'PRAZO PERSONALIZADO'
+                    : 'PRAZO EXTRAÍDO • CONFERIR';
+            card.appendChild(classe);
+
             const titulo = document.createElement('strong');
-            titulo.textContent = evento.title;
-
-            const processo = document.createElement('span');
-            processo.textContent = props.numero_processo;
-
-            const tipo = document.createElement('span');
-            tipo.textContent = props.nome_prazo;
-
-            const dias = document.createElement('span');
-            dias.className = 'prazo-card-dias';
-
-            if (props.dias_restantes < 0) {
-                dias.textContent = `Vencido há ${Math.abs(props.dias_restantes)} dias`;
-            } else if (props.dias_restantes === 0) {
-                dias.textContent = 'Vence hoje';
-            } else {
-                dias.textContent = `${props.dias_restantes} dias restantes`;
-            }
-
-            if (props.origem_prazo === 'estimativa_prazus') {
-                const estimativa = document.createElement('small');
-                estimativa.textContent = 'Estimativa';
-                card.appendChild(estimativa);
-            }
-
+            titulo.textContent = info.event.title;
             card.appendChild(titulo);
-            card.appendChild(processo);
-            card.appendChild(tipo);
-            card.appendChild(dias);
 
+            if (props.cliente) {
+                const processo = document.createElement('span');
+                processo.textContent = props.numero_processo;
+                card.appendChild(processo);
+            }
+
+            // Datas de triagem não são vencimentos judiciais.
+            if (props.tipo !== 'triagem') {
+                const dias = document.createElement('span');
+                dias.className = 'prazo-card-dias';
+                if (props.dias_restantes < 0) {
+                    dias.textContent = `Data calculada há ${Math.abs(props.dias_restantes)} dias`;
+                } else if (props.dias_restantes === 0) {
+                    dias.textContent = 'Data calculada: hoje';
+                } else {
+                    dias.textContent = `Data calculada em ${props.dias_restantes} dias`;
+                }
+                card.appendChild(dias);
+            }
             return { domNodes: [card] };
         },
-
 
         eventClick: function (info) {
             info.jsEvent.preventDefault();

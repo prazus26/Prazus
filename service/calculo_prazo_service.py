@@ -23,6 +23,10 @@ def calcular_data_inicio(data_publicacao, feriados):
 
 
 def calcular_vencimento(data_inicio, dias, tipo_contagem, feriados):
+    if not isinstance(dias, int) or isinstance(dias, bool) or dias < 1:
+        raise ValueError("A quantidade de dias deve ser um inteiro positivo.")
+    if tipo_contagem not in ("uteis", "corridos"):
+        raise ValueError("Tipo de contagem inválido.")
     data = data_inicio
 
     if tipo_contagem == "uteis":

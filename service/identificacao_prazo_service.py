@@ -60,15 +60,18 @@ def identificar_prazo(texto):
         resultado = re.search(padrao, texto)
 
         if resultado:
+            quantidade = int(resultado.group(1))
+            if quantidade < 1:
+                continue
+            # Regex detecta apenas uma menção: não comprova o destinatário,
+            # a obrigação ou a regra processual aplicável.
             return {
-                "identificado": True,
-                "dias": int(resultado.group(1)),
-                "tipo_contagem": (
-                    "uteis"
-                    if resultado.group(2) == "úteis"
-                    else "corridos"
+                "identificado": False,
+                "revisao_necessaria": True,
+                "dias_sugeridos": quantidade,
+                "tipo_contagem_sugerida": (
+                    "uteis" if resultado.group(2) == "úteis" else "corridos"
                 ),
-                "origem": "djen",
                 "trecho_identificado": resultado.group(0)
             }
 
@@ -82,7 +85,7 @@ def identificar_prazo(texto):
 
     resultado = re.search(padrao_sem_contagem, texto)
 
-    if resultado:
+    if resultado and int(resultado.group(1)) > 0:
         return {
             "identificado": False,
             "revisao_necessaria": True,

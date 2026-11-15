@@ -142,28 +142,51 @@ def eventos_calendario():
             data_publicacao,
             data_disponibilizacao,
             nome_prazo,
-            origem_prazo
+            origem_prazo,
+            personalizado_manualmente,
+            revisao_estado
         ) = resultado
 
+        confirmado_ou_editado = (
+            personalizado_manualmente is True
+            or revisao_estado == "confirmada"
+        )
+        triagem = (
+            origem_prazo == "estimativa_prazus"
+            and not confirmado_ou_editado
+        )
         dias_restantes = (data_vencimento - hoje).days
+
+        # Estimativa antiga não determina prazo processual. Para triagem,
+        # utilizar data factual da disponibilização, não vencimento fictício.
+        data_evento = data_disponibilizacao if triagem else data_vencimento
 
         eventos.append({
             "id": str(prazo_id),
-            "title": cliente or f"Processo {numero_processo}",
-            "start": data_vencimento.isoformat(),
+            "title": cliente or numero_processo,
+            "start": data_evento.isoformat(),
             "allDay": True,
-            "backgroundColor": definir_cor(
-                data_vencimento, cores, hoje
+            "backgroundColor": (
+                "#D9E7F2" if triagem
+                else definir_cor(data_vencimento, cores, hoje)
             ),
             "borderColor": "transparent",
             "textColor": "#29231D",
             "extendedProps": {
-                "tipo": "prazo",
+                "tipo": (
+                    "triagem" if triagem
+                    else "prazo_personalizado" if confirmado_ou_editado
+                    else "prazo_nao_validado"
+                ),
                 "publicacao_id": publicacao_id,
                 "prazo_id": prazo_id,
                 "numero_processo": numero_processo,
                 "cliente": cliente,
-                "nome_prazo": nome_prazo or "Prazo processual",
+                "nome_prazo": (
+                    "Publicação para análise" if triagem
+                    else "Prazo personalizado" if confirmado_ou_editado
+                    else (nome_prazo or "Prazo extraído — conferir")
+                ),
                 "origem_prazo": origem_prazo,
                 "status": status,
                 "dias_restantes": dias_restantes
