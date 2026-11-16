@@ -7,6 +7,8 @@ from model.prazo import Prazo
 from model.publicacao import Publicacao
 from model.processo import Processo
 
+from service.estado_prazo_service import tem_confirmacao_humana
+
 from repository.notificacao_repository import (
     cadastrar_notificacao,
     buscar_notificacoes,
@@ -70,13 +72,12 @@ def gerar_notificacoes(usuario_id):
             numero_processo
         ) = prazo
 
-        # Alertar vencimentos de estimativas somente quando a pessoa os
-        # personalizou ou confirmou. As demais são itens de triagem.
-        if (
-            origem_prazo == "estimativa_prazus"
-            and personalizado_manualmente is not True
-            and revisao_estado != "confirmada"
-        ):
+        # Não enviar alerta de vencimento para estimativa legada arbitrária.
+        # Candidato DJEN com data aparece em alerta explicitamente provisório.
+        confirmado = tem_confirmacao_humana(
+            personalizado_manualmente, revisao_estado
+        )
+        if origem_prazo == "estimativa_prazus" and not confirmado:
             continue
 
         dias_restantes = (vencimento - hoje).days
@@ -114,10 +115,12 @@ def gerar_notificacoes(usuario_id):
         else:
             continue
 
-        if origem_prazo == "estimativa_prazus":
+        if not confirmado and origem_prazo == "djen":
+            descricao += " (POSSÍVEL prazo extraído do DJEN, não validado; confira o processo)"
+        elif origem_prazo == "estimativa_prazus":
             descricao += " (data personalizada ou confirmada; confira o processo)"
         else:
-            descricao += " (data extraída; confira o processo)"
+            descricao += " (data registrada; confira o processo)"
 
         if revisao_estado == "pendente":
             descricao += " — revisão necessária"

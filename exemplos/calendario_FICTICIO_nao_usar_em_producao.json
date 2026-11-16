@@ -1,0 +1,8 @@
+{
+  "orgao": "TRIBUNAL FICTÍCIO — SOMENTE PARA TESTES",
+  "inicio_cobertura": "2026-11-01",
+  "fim_cobertura": "2026-12-31",
+  "dias_sem_expediente": ["2026-11-16", "2026-11-17"],
+  "fonte": "DATAS FICTÍCIAS — NÃO É FONTE OFICIAL",
+  "validado_por": "EXEMPLO, NÃO USAR EM PRODUÇÃO"
+}

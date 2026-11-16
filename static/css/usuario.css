@@ -152,12 +152,14 @@ header {
             border-radius: 8px;
         }
 
+        /* Eventos do FullCalendar: cards compactos no estilo original do Prazus. */
         .fc .fc-daygrid-event {
-            border-radius: 5px;
+            border-radius: 4px;
             margin: 2px 3px;
             padding: 0;
             white-space: normal;
             box-shadow: none;
+            overflow: hidden;
         }
 
         .fc .fc-daygrid-event-harness {
@@ -167,35 +169,45 @@ header {
         .prazo-card {
             display: flex;
             flex-direction: column;
-            gap: 3px;
-            padding: 7px;
-            font-family: Arial, sans-serif;
-            font-size: 11px;
-            line-height: 1.3;
+            gap: 1px;
+            padding: 5px 6px;
+            font-family: "Marcellus", Georgia, serif;
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 1.2;
             color: #29231d;
             white-space: normal;
-            overflow-wrap: anywhere;
+            overflow-wrap: break-word;
+            word-break: normal;
         }
 
         .prazo-card strong {
-            font-size: 12px;
-            font-weight: 600;
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: 400;
+            line-height: inherit;
         }
 
         .prazo-card span {
             display: block;
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: 400;
+            line-height: inherit;
         }
 
         .prazo-card-dias {
-            padding-top: 4px;
-            border-top: 1px solid rgba(41, 35, 29, 0.2);
-            font-weight: 600;
+            padding-top: 0;
+            border-top: none;
+            font-weight: 400;
         }
 
         .prazo-card small {
+            font-family: inherit;
             font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: normal;
         }
     }
 
@@ -630,15 +642,18 @@ header {
         color: #486d3d;
     }
 
-    .publicados-pagina {
 
-        .publicados-pagina {
-            padding: 26px 35px 50px;
-            background: #fff;
-            min-height: 100%;
-            color: #231d18;
-            font-family: inherit;
-        }
+
+    .publicados-pagina {
+        padding: 26px 35px 50px;
+        background: #fff;
+        min-height: 100%;
+        color: #231d18;
+        font-family: "Marcellus", serif;
+
+        /* =========================================
+       LAYOUT PRINCIPAL
+    ========================================= */
 
         .publicados-layout {
             display: grid;
@@ -651,15 +666,20 @@ header {
             min-width: 0;
         }
 
+        /* =========================================
+       NAVEGAÇÃO SUPERIOR
+    ========================================= */
+
         .publicados-navegacao {
             min-height: 49px;
-            box-sizing: border-box;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
+
             padding: 9px 13px;
             margin-bottom: 25px;
+
             background: #e9e7e7;
             border-radius: 4px;
         }
@@ -669,18 +689,23 @@ header {
             align-items: center;
             gap: 17px;
             white-space: nowrap;
-        }
 
-        .publicados-navegacao-data a {
-            font-family: Arial, sans-serif;
-            color: #27211d;
-            text-decoration: none;
-            font-size: 26px;
-            line-height: 1;
-        }
+            a {
+                font-family: Arial, sans-serif;
+                color: #27211d;
+                text-decoration: none;
+                font-size: 26px;
+                line-height: 1;
+                transition: color 0.2s;
 
-        .publicados-navegacao-data span {
-            font-size: 17px;
+                &:hover {
+                    color: var(--dourado);
+                }
+            }
+
+            span {
+                font-size: 17px;
+            }
         }
 
         .publicados-instrucao {
@@ -692,21 +717,25 @@ header {
         .publicados-escolher-data {
             display: flex;
             align-items: center;
+
+            input {
+                width: 25px;
+                max-width: 25px;
+                border: none;
+                background: transparent;
+                color: transparent;
+                cursor: pointer;
+                font-size: 12px;
+
+                &::-webkit-calendar-picker-indicator {
+                    cursor: pointer;
+                }
+            }
         }
 
-        .publicados-escolher-data input {
-            width: 25px;
-            max-width: 25px;
-            border: none;
-            background: transparent;
-            color: transparent;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .publicados-escolher-data input::-webkit-calendar-picker-indicator {
-            cursor: pointer;
-        }
+        /* =========================================
+       LISTAGEM DE PUBLICAÇÕES
+    ========================================= */
 
         .publicados-listagem {
             display: flex;
@@ -714,49 +743,88 @@ header {
             gap: 12px;
         }
 
+        /* =========================================
+       CARD DA PUBLICAÇÃO
+    ========================================= */
+
         .publicacao-card {
             position: relative;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: start;
+            column-gap: 16px;
+            row-gap: 14px;
+
             width: 100%;
-            max-width: 410px;
+            max-width: 680px;
             min-height: 112px;
-            box-sizing: border-box;
+            padding: 16px;
+
             background: var(--cor-publicacao);
-            border-radius: 3px;
-            padding: 13px 12px;
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 8px;
+            border: 2px solid transparent;
+            border-radius: 4px;
+
             color: #211d19;
             font-size: 13px;
-            line-height: 1.25;
-            border: 2px solid transparent;
-            transition: border-color .15s;
+            line-height: 1.45;
+
+            transition: border-color 0.2s;
+
+            &.selecionado {
+                border-color: var(--dourado);
+            }
+
+            &.concluido .publicacao-informacoes {
+                color: #797575;
+                text-decoration: line-through;
+            }
         }
 
-        .publicacao-card.selecionado {
-            border-color: #a17e50;
-        }
-
-        .publicacao-card.concluido .publicacao-informacoes {
-            color: #797575;
-            text-decoration: line-through;
-        }
+        /* =========================================
+       INFORMAÇÕES DA PUBLICAÇÃO
+    ========================================= */
 
         .publicacao-informacoes {
-            flex: 1;
+            grid-column: 1;
+            grid-row: 1;
+
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+
+            width: 100%;
             min-width: 0;
-            overflow-wrap: anywhere;
+
+            overflow-wrap: break-word;
+            word-break: normal;
+
+            >div {
+                max-width: 100%;
+                overflow-wrap: anywhere;
+            }
         }
 
         .publicacao-cliente {
+            font-size: 15px;
             font-weight: 500;
+            line-height: 1.4;
         }
 
+        /* =========================================
+       BOTÕES DE AÇÃO
+    ========================================= */
+
         .publicacao-acoes {
+            grid-column: 2;
+            grid-row: 1;
+
             display: flex;
             align-items: flex-start;
+            justify-content: flex-end;
             gap: 5px;
+
+            width: max-content;
+            min-width: 0;
             flex-shrink: 0;
         }
 
@@ -765,134 +833,363 @@ header {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 24px;
-            height: 22px;
-            padding: 3px;
-            box-sizing: border-box;
+
+            width: 26px;
+            height: 26px;
+            padding: 4px;
+
             color: #3c352d;
             background: #dedbd4;
+
             border: 1px solid #a99b88;
             border-radius: 4px;
+
             cursor: pointer;
+            transition: 0.2s;
+
+            &:hover {
+                background: #cfc6b9;
+            }
+
+            svg {
+                width: 16px;
+                height: 16px;
+            }
         }
 
-        .publicacao-imprimir svg,
-        .publicacao-marcar svg {
-            width: 16px;
-            height: 16px;
-        }
+        .publicacao-marcar {
+            svg {
+                opacity: 0.55;
+            }
 
-        .publicacao-marcar svg {
-            opacity: .55;
-        }
+            &[aria-pressed="true"] {
+                background: #8db57c;
 
-        .publicacao-marcar[aria-pressed="true"] {
-            background: #8db57c;
-        }
-
-        .publicacao-marcar[aria-pressed="true"] svg {
-            opacity: 1;
+                svg {
+                    opacity: 1;
+                }
+            }
         }
 
         .publicacao-editar {
             display: flex;
             align-items: center;
             justify-content: center;
+
             width: 90px;
-            height: 22px;
-            box-sizing: border-box;
-            background: #aa8b64;
-            color: #fff;
+            height: 26px;
+            padding: 0 10px;
+
+            background: var(--dourado);
+            color: var(--branco);
+
             text-decoration: none;
+            font-family: inherit;
             font-size: 12px;
+
             border-radius: 3px;
+            transition: background 0.2s;
+
+            &:hover {
+                background: #856a46;
+            }
         }
 
-        .publicacao-editar:hover {
-            background: #8e714e;
+        /* =========================================
+       ANÁLISE DO GEMINI
+    ========================================= */
+
+        .publicacao-ia {
+            grid-column: 1 / -1;
+            grid-row: 2;
+
+            width: 100%;
+            min-width: 0;
+
+            margin: 0;
+            padding: 14px 16px;
+
+            background: rgba(255, 255, 255, 0.65);
+
+            border: 1px solid rgba(159, 129, 88, 0.28);
+            border-radius: 4px;
+
+            font-family: inherit;
+            font-size: 13px;
+            line-height: 1.5;
+
+            overflow-wrap: anywhere;
         }
+
+        /* Cabeçalho da análise */
+
+        .ia-cabecalho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+
+            gap: 10px;
+            margin-bottom: 12px;
+
+            strong {
+                font-size: 14px;
+                font-weight: 500;
+            }
+        }
+
+        /* Estados da IA */
+
+        .ia-status {
+            display: inline-block;
+
+            padding: 5px 9px;
+
+            background: #ede7df;
+            color: #67543e;
+
+            border-radius: 4px;
+
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .ia-concluida {
+            background: #e2eddf;
+            color: #38613c;
+        }
+
+        /* Obrigações identificadas */
+
+        .ia-obrigacao {
+            padding: 12px 0;
+            border-top: 1px solid rgba(159, 129, 88, 0.25);
+
+            strong {
+                display: block;
+                margin-bottom: 8px;
+
+                color: #33291e;
+                font-size: 14px;
+                font-weight: 500;
+            }
+
+            p {
+                margin: 6px 0;
+                font-size: 13px;
+            }
+        }
+
+        /* Evidência da obrigação */
+
+        .ia-evidencia {
+            margin-top: 10px;
+            padding: 9px 12px;
+
+            background: rgba(159, 129, 88, 0.08);
+            border-left: 3px solid var(--dourado);
+
+            font-style: italic;
+            line-height: 1.6;
+        }
+
+        /* Prazo ainda não validado */
+
+        .ia-aviso {
+            display: inline-block;
+
+            margin-top: 10px;
+            padding: 5px 9px;
+
+            color: #926228;
+            background: #f7eedf;
+
+            border: 1px solid #e6d5b9;
+            border-radius: 3px;
+
+            font-size: 12px;
+        }
+
+        /* =========================================
+       RESULTADO COMPLETO DO GEMINI
+    ========================================= */
+
+        .ia-detalhes {
+            margin-top: 14px;
+            padding-top: 10px;
+
+            border-top: 1px solid rgba(159, 129, 88, 0.2);
+
+            summary {
+                color: #8a6f4b;
+                font-size: 12px;
+
+                cursor: pointer;
+                transition: color 0.2s;
+
+                &:hover {
+                    color: #5e492d;
+                }
+            }
+
+            pre {
+                max-width: 100%;
+                max-height: 280px;
+
+                margin-top: 10px;
+                padding: 12px;
+
+                overflow: auto;
+
+                background: #f5f2ee;
+                border: 1px solid #e4d9cb;
+                border-radius: 4px;
+
+                color: #382e24;
+
+                font-family: Consolas, monospace;
+                font-size: 12px;
+                line-height: 1.6;
+
+                white-space: pre-wrap;
+                overflow-wrap: anywhere;
+            }
+        }
+
+        /* =========================================
+       BARRA LATERAL DE IMPRESSÃO
+    ========================================= */
 
         .publicados-lateral {
             padding-top: 74px;
+
+            form {
+                display: flex;
+                flex-direction: column;
+                gap: 18px;
+            }
+
+            button {
+                display: block;
+
+                width: 100%;
+                height: 36px;
+
+                border: none;
+                border-radius: 3px;
+
+                color: #252525;
+                background: #dddddd;
+
+                font-family: inherit;
+                font-size: 14px;
+
+                cursor: pointer;
+                transition: background 0.2s;
+
+                &:hover {
+                    background: #cecece;
+                }
+            }
         }
 
-        .publicados-lateral form {
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
-
-        .publicados-lateral button {
-            display: block;
-            width: 100%;
-            height: 36px;
-            border: none;
-            border-radius: 3px;
-            color: #252525;
-            background: #dddddd;
-            font-family: inherit;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        .publicados-lateral button:hover {
-            background: #cecece;
-        }
+        /* =========================================
+       NENHUMA PUBLICAÇÃO ENCONTRADA
+    ========================================= */
 
         .publicados-vazio {
-            max-width: 410px;
+            max-width: 680px;
             padding: 25px 15px;
+
             background: #f2f0ed;
             border-radius: 3px;
+
             color: #86735e;
             font-size: 14px;
         }
 
+        /* =========================================
+       RESPONSIVIDADE
+    ========================================= */
+
         @media (max-width: 950px) {
+            padding: 20px;
+
             .publicados-layout {
                 grid-template-columns: minmax(0, 1fr) 180px;
                 gap: 20px;
             }
 
-            .publicados-pagina {
-                padding: 20px;
-            }
-
             .publicados-instrucao {
                 display: none;
+            }
+
+            .publicacao-card {
+                max-width: 100%;
             }
         }
 
         @media (max-width: 650px) {
+            padding: 20px 16px;
+
             .publicados-layout {
-                grid-template-columns: 1fr;
+                grid-template-columns: minmax(0, 1fr);
             }
 
-            .publicados-lateral {
-                padding-top: 0;
-            }
-
-            .publicados-lateral form {
-                flex-direction: row;
-                gap: 10px;
-            }
-
-            .publicacao-card {
-                max-width: none;
-            }
-
-            .publicacao-editar {
-                width: 55px;
+            .publicados-navegacao {
+                flex-wrap: wrap;
             }
 
             .publicados-navegacao-data {
                 gap: 9px;
+
+                span {
+                    font-size: 14px;
+                }
             }
 
-            .publicados-navegacao-data span {
-                font-size: 14px;
+            .publicacao-card {
+                grid-template-columns: minmax(0, 1fr);
+                row-gap: 12px;
+                padding: 13px;
+            }
+
+            .publicacao-informacoes {
+                grid-column: 1;
+                grid-row: 1;
+            }
+
+            .publicacao-acoes {
+                grid-column: 1;
+                grid-row: 2;
+
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+
+            .publicacao-ia {
+                grid-column: 1;
+                grid-row: 3;
+            }
+
+            .ia-cabecalho {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .publicados-lateral {
+                padding-top: 0;
+
+                form {
+                    flex-direction: row;
+                    flex-wrap: wrap;
+                    gap: 10px;
+                }
+
+                button {
+                    flex: 1 1 150px;
+                }
             }
         }
-
     }
 }

@@ -15,7 +15,7 @@ def buscar_por_usuario_e_numero(usuario_id, numero_processo):
 
 
 def cadastrar_processo(usuario_id, numero_processo, tribunal=None,
-                       assunto=None, classe=None):
+                       assunto=None, classe=None, cliente=None):
 
     db = Session()
 
@@ -26,6 +26,9 @@ def cadastrar_processo(usuario_id, numero_processo, tribunal=None,
         ).first()
 
         if processo_existente:
+            if cliente and not processo_existente.cliente:
+                processo_existente.cliente = cliente
+                db.commit()
             return processo_existente
 
         novo_processo = Processo(
@@ -33,7 +36,8 @@ def cadastrar_processo(usuario_id, numero_processo, tribunal=None,
             numero_processo=numero_processo,
             tribunal=tribunal,
             assunto_original=assunto,
-            classe_original=classe
+            classe_original=classe,
+            cliente=cliente
         )
 
         db.add(novo_processo)

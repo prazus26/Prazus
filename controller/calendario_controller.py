@@ -14,9 +14,34 @@ from repository.prazo_repository import (
     buscar_detalhes_publicacao,
     alterar_exibicao_estimativa,
     atualizar_dados_prazo,
-    confirmar_sugestao_prazo
+    confirmar_sugestao_prazo,
+    criar_prazo_confirmado_pela_advogada
+)
+from repository.acompanhamento_repository import (
+    buscar_acompanhamento_da_publicacao,
+    dispensar_acompanhamento
+)
+from service.estado_prazo_service import tem_confirmacao_humana
+from service.eventos_automaticos_calendario_service import (
+    eventos_pericias_automaticas,
+    eventos_prazos_provisorios_automaticos,
 )
 from urllib.parse import urlparse
+
+def eventos_da_publicacao(usuario_id, publicacao_id):
+    """Reutiliza eventos da agenda, sem chamar IA ou gravar no banco.
+
+    A pesquisa original já está restrita ao usuário autenticado.
+    """
+    eventos = (
+        eventos_pericias_automaticas(usuario_id)
+        + eventos_prazos_provisorios_automaticos(usuario_id)
+    )
+    return [
+        evento for evento in eventos
+        if evento.get("extendedProps", {}).get("publicacao_id") == publicacao_id
+    ]
+
 
 calendario_bp = Blueprint("calendario", __name__)
 
@@ -94,14 +119,22 @@ def detalhes_prazo(prazo_id):
     if not prazo:
         abort(404)
 
-    return render_template(
-    "prazo_detalhes.html",
-    prazo=prazo,
-    csrf_token=session.setdefault(
-        "csrf_token",
-        secrets.token_hex(32)
+    prazo["triagem"] = not tem_confirmacao_humana(
+        prazo["personalizado_manualmente"], prazo["revisao_estado"]
     )
-)
+    acompanhamento = buscar_acompanhamento_da_publicacao(
+        prazo["publicacao_id"], usuario_id
+    )
+    if acompanhamento:
+        prazo["acompanhamento_estado"] = acompanhamento["estado"]
+
+    eventos_automaticos = eventos_da_publicacao(usuario_id, prazo["publicacao_id"])
+    return render_template(
+        "prazo_detalhes.html",
+        prazo=prazo,
+        eventos_automaticos=eventos_automaticos,
+        csrf_token=session.setdefault("csrf_token", secrets.token_hex(32)),
+    )
 
 
 @calendario_bp.route("/publicacao/<int:publicacao_id>")
@@ -114,17 +147,133 @@ def detalhes_publicacao(publicacao_id):
     if not prazo:
         abort(404)
 
+    prazo["triagem"] = (
+        prazo["prazo_id"] is None
+        or not tem_confirmacao_humana(
+            prazo["personalizado_manualmente"], prazo["revisao_estado"]
+        )
+    )
+    acompanhamento = buscar_acompanhamento_da_publicacao(publicacao_id, usuario_id)
+    if acompanhamento:
+        prazo.update({
+            "acompanhamento_estado": acompanhamento["estado"],
+            "dias_sugeridos": acompanhamento["dias_sugeridos"],
+            "tipo_contagem_sugerida": acompanhamento["tipo_contagem_sugerida"],
+            "trecho_sugerido": acompanhamento["trecho_sugerido"],
+        })
+
+    eventos_automaticos = eventos_da_publicacao(usuario_id, publicacao_id)
     return render_template(
-    "prazo_detalhes.html",
-    prazo=prazo,
-    csrf_token=session.setdefault("csrf_token", secrets.token_hex(32))
-)
+        "prazo_detalhes.html",
+        prazo=prazo,
+        eventos_automaticos=eventos_automaticos,
+        csrf_token=session.setdefault("csrf_token", secrets.token_hex(32)),
+    )
+
+
+
+@calendario_bp.route("/publicacao/<int:publicacao_id>/dispensar", methods=["POST"])
+@login_obrigatorio
+def dispensar_publicacao(publicacao_id):
+    token_recebido = request.form.get("csrf_token", "")
+    token = session.get("csrf_token", "")
+    if not token or not hmac.compare_digest(token_recebido, token):
+        abort(403)
+    try:
+        encontrado = dispensar_acompanhamento(publicacao_id, session["usuario_id"])
+    except ValueError:
+        abort(409)
+    if not encontrado:
+        abort(404)
+    return redirect(url_for("calendario.detalhes_publicacao", publicacao_id=publicacao_id))
+
+
+@calendario_bp.route("/publicacao/<int:publicacao_id>/novo-prazo", methods=["GET", "POST"])
+@login_obrigatorio
+def novo_prazo_publicacao(publicacao_id):
+    """Registro manual explícito: não presume que a menção do DJEN é prazo real."""
+    usuario_id = session["usuario_id"]
+    detalhes = buscar_detalhes_publicacao(publicacao_id, usuario_id)
+    if detalhes is None:
+        abort(404)
+    if detalhes["prazo_id"]:
+        return redirect(url_for(
+            "calendario.detalhes_prazo", prazo_id=detalhes["prazo_id"]
+        ))
+
+    token = session.setdefault("csrf_token", secrets.token_hex(32))
+    erros = []
+    dados = {
+        "nome_prazo": "", "dias": "", "tipo_contagem": "uteis",
+        "data_inicio": "", "data_vencimento": "",
+    }
+
+    if request.method == "POST":
+        recebido = request.form.get("csrf_token", "")
+        if not hmac.compare_digest(recebido, token):
+            abort(403)
+        dados = {campo: request.form.get(campo, "").strip()
+                 for campo in dados}
+        nome = dados["nome_prazo"]
+        if not nome or len(nome) > 150:
+            erros.append("Informe o nome do prazo (até 150 caracteres).")
+        if dados["tipo_contagem"] not in ("uteis", "corridos"):
+            erros.append("Tipo de contagem inválido.")
+        try:
+            dias = int(dados["dias"])
+            if not 1 <= dias <= 3650:
+                raise ValueError()
+        except ValueError:
+            dias = None
+            erros.append("Informe uma quantidade de dias entre 1 e 3650.")
+        try:
+            inicio = date.fromisoformat(dados["data_inicio"])
+            vencimento = date.fromisoformat(dados["data_vencimento"])
+            if vencimento < inicio:
+                erros.append("Vencimento anterior ao início.")
+        except ValueError:
+            inicio = vencimento = None
+            erros.append("Informe datas válidas de início e vencimento.")
+
+        if not erros:
+            try:
+                prazo_id = criar_prazo_confirmado_pela_advogada(
+                    publicacao_id,
+                    usuario_id,
+                    {
+                        "nome_prazo": nome,
+                        "dias": dias,
+                        "tipo_contagem": dados["tipo_contagem"],
+                        "data_inicio": inicio,
+                        "data_vencimento": vencimento,
+                    },
+                )
+            except ValueError as erro:
+                erros.append(str(erro))
+            else:
+                if prazo_id is None:
+                    abort(404)
+                return redirect(url_for("calendario.detalhes_prazo", prazo_id=prazo_id))
+
+    return render_template(
+        "prazo_novo.html",
+        publicacao=detalhes,
+        dados=dados,
+        erros=erros,
+        csrf_token=token,
+    )
+
 
 @calendario_bp.route("/api/calendario/eventos")
 @login_obrigatorio
 def eventos_calendario():
-    usuario_id = session["usuario_id"]
+    """Exibe somente vencimentos com confirmacao humana registrada.
 
+    Triagens, estimativas nao confirmadas e prazos DJEN ainda nao
+    validados permanecem no banco e em suas telas de acompanhamento.
+    Esta rota apenas le dados: nao grava ou exclui registros.
+    """
+    usuario_id = session["usuario_id"]
     resultados = buscar_prazos_do_usuario(usuario_id)
     cores = configuracao_cores(usuario_id)
     hoje = datetime.now(ZoneInfo("America/Sao_Paulo")).date()
@@ -144,55 +293,42 @@ def eventos_calendario():
             nome_prazo,
             origem_prazo,
             personalizado_manualmente,
-            revisao_estado
+            revisao_estado,
+            acompanhamento_estado,
         ) = resultado
 
-        confirmado_ou_editado = (
-            personalizado_manualmente is True
-            or revisao_estado == "confirmada"
-        )
-        triagem = (
-            origem_prazo == "estimativa_prazus"
-            and not confirmado_ou_editado
-        )
-        dias_restantes = (data_vencimento - hoje).days
-
-        # Estimativa antiga não determina prazo processual. Para triagem,
-        # utilizar data factual da disponibilização, não vencimento fictício.
-        data_evento = data_disponibilizacao if triagem else data_vencimento
+        # Nunca exibir estimativas, triagens ou datas sem confirmacao.
+        if data_vencimento is None:
+            continue
+        if not tem_confirmacao_humana(personalizado_manualmente, revisao_estado):
+            continue
 
         eventos.append({
             "id": str(prazo_id),
             "title": cliente or numero_processo,
-            "start": data_evento.isoformat(),
+            "start": data_vencimento.isoformat(),
             "allDay": True,
-            "backgroundColor": (
-                "#D9E7F2" if triagem
-                else definir_cor(data_vencimento, cores, hoje)
-            ),
+            "backgroundColor": definir_cor(data_vencimento, cores, hoje),
             "borderColor": "transparent",
             "textColor": "#29231D",
             "extendedProps": {
-                "tipo": (
-                    "triagem" if triagem
-                    else "prazo_personalizado" if confirmado_ou_editado
-                    else "prazo_nao_validado"
-                ),
+                "tipo": "prazo_personalizado",
                 "publicacao_id": publicacao_id,
                 "prazo_id": prazo_id,
                 "numero_processo": numero_processo,
                 "cliente": cliente,
-                "nome_prazo": (
-                    "Publicação para análise" if triagem
-                    else "Prazo personalizado" if confirmado_ou_editado
-                    else (nome_prazo or "Prazo extraído — conferir")
-                ),
+                "nome_prazo": nome_prazo or "Prazo confirmado",
                 "origem_prazo": origem_prazo,
                 "status": status,
-                "dias_restantes": dias_restantes
-            }
+                "dias_restantes": (data_vencimento - hoje).days,
+            },
         })
 
+    # Compromissos identificados automaticamente no DJEN + IA já armazenada.
+    # Não dependem de confirmação manual e não são vencimentos judiciais.
+    eventos.extend(eventos_pericias_automaticas(usuario_id))
+    # Prévia independente de confirmação humana, explicitamente não validada.
+    eventos.extend(eventos_prazos_provisorios_automaticos(usuario_id))
     return jsonify(eventos)
 
 
@@ -239,6 +375,16 @@ def editar_prazo(prazo_id):
     if not prazo:
         abort(404)
 
+    # Registros legados em triagem não são vencimentos confirmados.
+    # O indicador também é necessário na tela de edição.
+    prazo["triagem"] = not tem_confirmacao_humana(
+        prazo["personalizado_manualmente"], prazo["revisao_estado"]
+    )
+
+    # Compromissos e prévias são gerados automaticamente, inclusive ao editar.
+    # Não é necessário confirmar um prazo para estes eventos existirem.
+    eventos_automaticos = eventos_da_publicacao(usuario_id, prazo["publicacao_id"])
+
     token = session.setdefault(
         "csrf_token",
         secrets.token_hex(32)
@@ -247,7 +393,8 @@ def editar_prazo(prazo_id):
     erros = []
 
     if request.method == "GET":
-        data_vencimento = prazo["data_vencimento"]
+        # A estimativa legada não deve aparecer como vencimento confirmado.
+        data_vencimento = None if prazo["triagem"] else prazo["data_vencimento"]
 
         data_alerta = ""
 
@@ -267,6 +414,7 @@ def editar_prazo(prazo_id):
             "numero_processo": prazo["numero_processo"] or "",
             "tribunal": prazo["tribunal"] or "",
             "vara": prazo["vara"] or "",
+            "unidade_judicial": prazo.get("unidade_judicial") or "",
             "link_processo": prazo["link_processo"] or "",
             "data_publicacao": (
                 prazo["data_publicacao"].isoformat()
@@ -292,6 +440,7 @@ def editar_prazo(prazo_id):
             ).strip(),
             "tribunal": request.form.get("tribunal", "").strip(),
             "vara": request.form.get("vara", "").strip(),
+            "unidade_judicial": prazo.get("unidade_judicial") or "",
             "link_processo": request.form.get(
                 "link_processo", ""
             ).strip(),
@@ -353,7 +502,7 @@ def editar_prazo(prazo_id):
         data_vencimento = converter_data(
             dados["data_vencimento"],
             "a data de vencimento",
-            obrigatoria=True
+            obrigatoria=False
         )
 
         data_alerta = converter_data(
@@ -363,14 +512,24 @@ def editar_prazo(prazo_id):
 
         alerta_proximidade = None
 
-        if data_alerta and data_vencimento:
-            if data_alerta > data_vencimento:
+        vencimento_atual = prazo["data_vencimento"]
+        # Nenhum ajuste manual: conserva o valor histórico e o estado de revisão.
+        alterar_vencimento = (
+            data_vencimento is not None
+            and (prazo["triagem"] or data_vencimento != vencimento_atual)
+        )
+        vencimento_para_alerta = (
+            data_vencimento if alterar_vencimento else vencimento_atual
+        )
+
+        if data_alerta and vencimento_para_alerta:
+            if data_alerta > vencimento_para_alerta:
                 erros.append(
                     "O alerta não pode ser posterior ao vencimento."
                 )
             else:
                 alerta_proximidade = (
-                    data_vencimento - data_alerta
+                    vencimento_para_alerta - data_alerta
                 ).days
 
         if (
@@ -391,6 +550,7 @@ def editar_prazo(prazo_id):
                 "link_processo": dados["link_processo"] or None,
                 "data_publicacao": data_publicacao,
                 "data_vencimento": data_vencimento,
+                "alterar_vencimento": alterar_vencimento,
                 "alerta_proximidade": alerta_proximidade
             }
 
@@ -414,6 +574,7 @@ def editar_prazo(prazo_id):
         prazo=prazo,
         dados=dados,
         erros=erros,
+        eventos_automaticos=eventos_automaticos,
         csrf_token=token
     )
 

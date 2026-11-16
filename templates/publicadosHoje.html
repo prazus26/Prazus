@@ -71,6 +71,84 @@
 
                     </div>
 
+                    <div class="publicacao-ia">
+
+                        {% if publicacao.ia_estado == 'concluida' %}
+
+                        <div class="ia-cabecalho">
+                            <strong>Resultado da análise IA</strong>
+                            <span class="ia-status ia-concluida">Analisada</span>
+                        </div>
+
+                        {% if publicacao.ia_prazos %}
+
+                        {% for prazo_ia in publicacao.ia_prazos %}
+                        <div class="ia-obrigacao">
+
+                            <strong>
+                                {{ prazo_ia.get('atividade') or 'Obrigação identificada' }}
+                            </strong>
+
+                            <p>
+                                Destinatário:
+                                {{ prazo_ia.get('destinatario') or 'Não identificado' }}
+                            </p>
+
+                            <p>
+                                Prazo identificado:
+                                {{ prazo_ia.get('dias') if prazo_ia.get('dias') is not none else 'Não informado' }}
+                                {% if prazo_ia.get('contagem') %}
+                                — {{ prazo_ia.get('contagem') }}
+                                {% endif %}
+                            </p>
+
+                            {% if prazo_ia.get('evidencia') %}
+                            <p class="ia-evidencia">
+                                Evidência: {{ prazo_ia.get('evidencia') }}
+                            </p>
+                            {% endif %}
+
+                            {% set indice = loop.index0 %}
+
+                            <span class="ia-aviso">
+                                {% if indice < publicacao.ia_estados_candidatos | length %} {{
+                                    publicacao.ia_estados_candidatos[indice] }} {% else %} Vencimento ainda não validado
+                                    {% endif %} </span>
+
+                        </div>
+                        {% endfor %}
+
+                        {% else %}
+
+                        <p>Nenhum prazo identificado na análise.</p>
+
+                        {% endif %}
+
+                        <details class="ia-detalhes">
+                            <summary>Ver análise completa</summary>
+                            <pre>{{ publicacao.ia_resultado | tojson(indent=2) }}</pre>
+                        </details>
+
+                        {% elif publicacao.ia_estado == 'processando' %}
+
+                        <span class="ia-status">Análise em processamento</span>
+
+                        {% elif publicacao.ia_estado == 'aguardando_cota' %}
+
+                        <span class="ia-status">Aguardando cota do Gemini</span>
+
+                        {% elif publicacao.ia_estado == 'falha' %}
+
+                        <span class="ia-status">Falha na análise — revisão necessária</span>
+
+                        {% else %}
+
+                        <span class="ia-status">Ainda não analisada pela IA</span>
+
+                        {% endif %}
+
+                    </div>
+
                     <div class="publicacao-acoes">
 
                         <a class="publicacao-imprimir"

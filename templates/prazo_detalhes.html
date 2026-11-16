@@ -129,11 +129,22 @@
                 <a href="{{ url_for('calendario.editar_prazo', prazo_id=prazo.prazo_id) }}">
                     Editar informações
                 </a>
+                {% else %}
+                <a class="botao editar" href="{{ url_for('calendario.novo_prazo_publicacao', publicacao_id=prazo.publicacao_id) }}">Registrar prazo após revisão</a>
                 {% endif %}
             </div>
-            {% if prazo.prazo_id and prazo.origem_prazo == "estimativa_prazus" and prazo.revisao_estado != "confirmada" and prazo.personalizado_manualmente != True %}
-            <p role="note">Publicação para revisão. A data estimada anteriormente
-            não representa um vencimento processual confirmado.</p>
+            {% if prazo.prazo_id and prazo.revisao_estado != "confirmada" and prazo.personalizado_manualmente != True %}
+            <p role="note">Publicação para revisão. Datas anteriormente calculadas
+            ou extraídas automaticamente não são vencimentos validados.</p>
+            {% endif %}
+            {% if prazo.acompanhamento_estado == "dispensada" %}
+            <p role="status">Acompanhamento dispensado após revisão. O documento DJEN permanece preservado.</p>
+            {% elif prazo.acompanhamento_estado == "pendente"
+              and prazo.revisao_estado != "confirmada" and prazo.personalizado_manualmente != True %}
+            <form method="post" action="{{ url_for('calendario.dispensar_publicacao', publicacao_id=prazo.publicacao_id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="botao imprimir">Revisei: não requer acompanhamento</button>
+            </form>
             {% endif %}
         </div>
 
@@ -158,12 +169,17 @@
 
                 <div class="campo">
                     <span>Vara</span>
-                    <strong>{{ prazo.vara or "Não informada" }}</strong>
+                    <strong>{{ prazo.unidade_judicial or prazo.vara or "Não informada" }}</strong>
                 </div>
 
                 <div class="campo">
                     <span>Classe</span>
                     <strong>{{ prazo.classe or "Não informada" }}</strong>
+                </div>
+
+                <div class="campo">
+                    <span>Tipo de documento</span>
+                    <strong>{{ prazo.tipo_documento or "Não informado" }}</strong>
                 </div>
 
                 <div class="campo">
@@ -183,8 +199,40 @@
             </div>
         </section>
 
+        {% if eventos_automaticos %}
+        <section class="secao">
+            <h2>Eventos identificados automaticamente</h2>
+            <p>Extraídos do DJEN e das análises já armazenadas. Não exigem confirmação manual para aparecer na agenda.</p>
+            <div class="informacoes">
+            {% for evento in eventos_automaticos %}
+                <div class="campo" style="padding:12px;border:1px solid #ded3c2;border-radius:7px;">
+                    {% if evento.extendedProps.tipo == 'pericia' %}
+                        <span>Perícia agendada</span>
+                        <strong>{{ evento.start[8:10] }}/{{ evento.start[5:7] }}/{{ evento.start[:4] }}{% if not evento.allDay %} às {{ evento.start[11:16] }}{% endif %}</strong>
+                        <p>Compromisso automático extraído do documento.</p>
+                    {% elif evento.extendedProps.tipo == 'prazo_provisorio' %}
+                        <span>Data-limite calculada automaticamente — provisória</span>
+                        <strong>{{ evento.start[8:10] }}/{{ evento.start[5:7] }}/{{ evento.start[:4] }}</strong>
+                        <p>{{ evento.extendedProps.nome_prazo }}</p>
+                        <p>{{ evento.extendedProps.aviso }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
         <section class="secao">
             <h2>Informações do acompanhamento</h2>
+            {% if not prazo.prazo_id %}
+            <p role="note">Esta publicação ainda não possui prazo processual cadastrado.
+            É um item de acompanhamento, não um vencimento judicial.</p>
+            {% if prazo.dias_sugeridos %}
+            <p>Menção encontrada para revisão: {{ prazo.dias_sugeridos }} dias
+            {% if prazo.tipo_contagem_sugerida %}({{ prazo.tipo_contagem_sugerida }}){% endif %}.
+            Trecho: {{ prazo.trecho_sugerido }}</p>
+            {% endif %}
+            {% endif %}
 
             <div class="informacoes">
                 <div class="campo">
@@ -194,22 +242,22 @@
 
                 <div class="campo">
                     <span>Dias configurados</span>
-                    <strong>{{ prazo.dias_prazo_atual or "Não definido" }}</strong>
+                    <strong>{% if prazo.triagem %}Não validado{% else %}{{ prazo.dias_prazo_atual or "Não definido" }}{% endif %}</strong>
                 </div>
 
                 <div class="campo">
                     <span>Data de início</span>
-                    <strong>{{ prazo.data_inicio or "Não definida" }}</strong>
+                    <strong>{% if prazo.triagem %}Não validada{% else %}{{ prazo.data_inicio or "Não definida" }}{% endif %}</strong>
                 </div>
 
                 <div class="campo">
                     <span>Data de vencimento</span>
-                    <strong>{{ prazo.data_vencimento or "Sem vencimento" }}</strong>
+                    <strong>{% if prazo.triagem %}Sem vencimento confirmado{% else %}{{ prazo.data_vencimento or "Sem vencimento" }}{% endif %}</strong>
                 </div>
 
                 <div class="campo">
                     <span>Contagem</span>
-                    <strong>{{ prazo.tipo_contagem or "Não definida" }}</strong>
+                    <strong>{% if prazo.triagem %}Não validada{% else %}{{ prazo.tipo_contagem or "Não definida" }}{% endif %}</strong>
                 </div>
 
                 <div class="campo">

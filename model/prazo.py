@@ -54,7 +54,7 @@ class Prazo(Base):
 )
 
     origem_prazo = Column(
-        Enum("djen", "estimativa_prazus"),
+        Enum("djen", "estimativa_prazus", "manual"),
         nullable=False
     )
 

@@ -8,13 +8,12 @@
 
 <section class="revisao-prazo">
 
-    <h2>Prazo encontrado para revisão</h2>
+    <h2>Estimativa histórica — não é vencimento judicial</h2>
 
     <p>
-        O documento menciona
-        <strong>{{ prazo.dias_sugeridos }} dias</strong>.
-        Confira se este prazo se aplica ao processo
-        antes de confirmar.
+        O sistema antigo armazenou uma estimativa de cinco dias.
+        Essa data não equivale à análise automática do DJEN e
+        não será confirmada ao salvar os dados cadastrais.
     </p>
 
     <blockquote>
@@ -76,6 +75,33 @@
 {% endif %}
 
 <div class="pagina-editar">
+
+    {# Eventos calculados sem intervenção humana. Nunca preencher automaticamente
+       o campo de confirmação manual com uma prévia provisória. #}
+    {% if eventos_automaticos %}
+    <section class="secao" style="margin-bottom:25px;">
+        <h2>Eventos identificados automaticamente</h2>
+        <p>Estes eventos já fazem parte da agenda. A edição abaixo é opcional.</p>
+        <div class="informacoes">
+            {% for evento in eventos_automaticos %}
+            {% if evento.extendedProps.tipo == 'pericia' %}
+            <div class="campo" style="padding:12px;border:1px solid #ded3c2;border-radius:7px;margin-bottom:10px;">
+                <span>Perícia agendada</span>
+                <strong>{{ evento.start[8:10] }}/{{ evento.start[5:7] }}/{{ evento.start[:4] }}{% if not evento.allDay %} às {{ evento.start[11:16] }}{% endif %}</strong>
+                <p>Compromisso extraído automaticamente do DJEN.</p>
+            </div>
+            {% elif evento.extendedProps.tipo == 'prazo_provisorio' %}
+            <div class="campo" style="padding:12px;border:1px solid #ded3c2;border-radius:7px;margin-bottom:10px;">
+                <span>Data-limite automática — provisória</span>
+                <strong>{{ evento.start[8:10] }}/{{ evento.start[5:7] }}/{{ evento.start[:4] }}</strong>
+                <p>{{ evento.extendedProps.nome_prazo }}</p>
+                <small>{{ evento.extendedProps.aviso }}</small>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
 
     <div class="editar-topo">
         <h1>EDITAR</h1>
@@ -141,7 +167,7 @@
                     value="{{ dados.tribunal }}"
                 >
 
-                <select name="vara">
+                <select name="vara" aria-label="Ramo de justiça (classificação antiga)">
                     <option value="">Vara</option>
 
                     <option value="civil"
@@ -160,6 +186,15 @@
                     </option>
                 </select>
             </div>
+            <p style="font-size:13px;color:#795c38;margin:9px 0;">
+                A seleção acima é a classificação antiga do banco, não o nome da vara.
+            </p>
+            {% if dados.unidade_judicial %}
+            <label for="unidade_judicial_texto">Unidade judicial identificada no DJEN</label>
+            <input id="unidade_judicial_texto" type="text"
+                   value="{{ dados.unidade_judicial }}" readonly>
+            <small>Identificada automaticamente no documento; armazenagem própria será adicionada em uma migração.</small>
+            {% endif %}
         </div>
 
         <div class="editar-campo">
@@ -185,12 +220,19 @@
         </div>
 
         <div class="editar-campo">
-            <label for="data_vencimento">Data de vencimento</label>
+            <label for="data_vencimento">Ajustar vencimento (opcional)</label>
+            {% if prazo.triagem %}
+            <p style="color:#8a5322;font-size:13px;">
+                O antigo registro possui uma estimativa não validada.
+                Ela não será usada como vencimento nem confirmada apenas por salvar este formulário.
+                Preencha uma data somente se quiser fazer um ajuste manual explícito.
+                Os compromissos automáticos permanecem na agenda independentemente disso.
+            </p>
+            {% endif %}
             <input
                 type="date"
                 id="data_vencimento"
                 name="data_vencimento"
-                required
                 value="{{ dados.data_vencimento }}"
             >
         </div>

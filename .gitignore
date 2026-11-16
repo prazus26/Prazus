@@ -1,6 +1,11 @@
 #SQLTools
 *.session.sql
-
+# Backups do banco
+*.sql
+*.sql.gz
+*.dump
+backups_estimativas/
+backups/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
