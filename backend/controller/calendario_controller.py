@@ -14,6 +14,7 @@ from backend.repository.prazo_repository import (
     buscar_detalhes_publicacao,
     alterar_exibicao_estimativa,
     atualizar_dados_prazo,
+    atualizar_dados_publicacao,
     confirmar_sugestao_prazo,
     criar_prazo_confirmado_pela_advogada
 )
@@ -21,11 +22,8 @@ from backend.repository.acompanhamento_repository import (
     buscar_acompanhamento_da_publicacao,
     dispensar_acompanhamento
 )
-from backend.service.estado_prazo_service import tem_confirmacao_humana
-from backend.service.eventos_automaticos_calendario_service import (
-    eventos_pericias_automaticas,
-    eventos_prazos_provisorios_automaticos,
-)
+from backend.service.estado_prazo_service import tem_confirmacao_humana, classificar_evento, aplicar_estado_legado
+from backend.service.agenda_eventos_service import listar_eventos, editar_evento
 from urllib.parse import urlparse
 
 def eventos_da_publicacao(usuario_id, publicacao_id):
@@ -33,14 +31,7 @@ def eventos_da_publicacao(usuario_id, publicacao_id):
 
     A pesquisa original já está restrita ao usuário autenticado.
     """
-    eventos = (
-        eventos_pericias_automaticas(usuario_id)
-        + eventos_prazos_provisorios_automaticos(usuario_id)
-    )
-    return [
-        evento for evento in eventos
-        if evento.get("extendedProps", {}).get("publicacao_id") == publicacao_id
-    ]
+    return listar_eventos(usuario_id, publicacao_id)
 
 
 calendario_bp = Blueprint("calendario", __name__)
@@ -119,9 +110,7 @@ def detalhes_prazo(prazo_id):
     if not prazo:
         abort(404)
 
-    prazo["triagem"] = not tem_confirmacao_humana(
-        prazo["personalizado_manualmente"], prazo["revisao_estado"]
-    )
+    aplicar_estado_legado(prazo)
     acompanhamento = buscar_acompanhamento_da_publicacao(
         prazo["publicacao_id"], usuario_id
     )
@@ -147,12 +136,7 @@ def detalhes_publicacao(publicacao_id):
     if not prazo:
         abort(404)
 
-    prazo["triagem"] = (
-        prazo["prazo_id"] is None
-        or not tem_confirmacao_humana(
-            prazo["personalizado_manualmente"], prazo["revisao_estado"]
-        )
-    )
+    aplicar_estado_legado(prazo)
     acompanhamento = buscar_acompanhamento_da_publicacao(publicacao_id, usuario_id)
     if acompanhamento:
         prazo.update({
@@ -267,17 +251,16 @@ def novo_prazo_publicacao(publicacao_id):
 @calendario_bp.route("/api/calendario/eventos")
 @login_obrigatorio
 def eventos_calendario():
-    """Exibe somente vencimentos com confirmacao humana registrada.
+    """Exibe automaticamente prazos DJEN calculados e ajustes opcionais.
 
-    Triagens, estimativas nao confirmadas e prazos DJEN ainda nao
-    validados permanecem no banco e em suas telas de acompanhamento.
-    Esta rota apenas le dados: nao grava ou exclui registros.
+    Estimativas legadas sem confirmação não viram vencimentos judiciais.
     """
     usuario_id = session["usuario_id"]
     resultados = buscar_prazos_do_usuario(usuario_id)
     cores = configuracao_cores(usuario_id)
     hoje = datetime.now(ZoneInfo("America/Sao_Paulo")).date()
 
+    eventos_automaticos = listar_eventos(usuario_id)
     eventos = []
 
     for resultado in resultados:
@@ -295,40 +278,54 @@ def eventos_calendario():
             personalizado_manualmente,
             revisao_estado,
             acompanhamento_estado,
-        ) = resultado
+        ) = resultado[:13]
 
-        # Nunca exibir estimativas, triagens ou datas sem confirmacao.
-        if data_vencimento is None:
+        tipo, data_evento = classificar_evento(
+            origem_prazo, personalizado_manualmente, revisao_estado,
+            data_vencimento, data_disponibilizacao,
+            data_vencimento_original=resultado[14] if len(resultado) > 14 else None,
+        )
+        if data_vencimento is None or tipo == "triagem" or revisao_estado == "descartada":
             continue
-        if not tem_confirmacao_humana(personalizado_manualmente, revisao_estado):
-            continue
+
+        # Os detalhes já complementam metadados antigos sem alterar o banco.
+        # Aplicar a mesma apresentação ao cartão evita dois nomes para o mesmo registro.
+        if not cliente:
+            detalhes = buscar_detalhes_publicacao(publicacao_id, usuario_id)
+            if detalhes:
+                cliente = detalhes.get("cliente")
 
         eventos.append({
             "id": str(prazo_id),
             "title": cliente or numero_processo,
-            "start": data_vencimento.isoformat(),
+            "start": data_evento.isoformat(),
             "allDay": True,
             "backgroundColor": definir_cor(data_vencimento, cores, hoje),
             "borderColor": "transparent",
             "textColor": "#29231D",
             "extendedProps": {
-                "tipo": "prazo_personalizado",
+                "tipo": tipo,
                 "publicacao_id": publicacao_id,
                 "prazo_id": prazo_id,
                 "numero_processo": numero_processo,
                 "cliente": cliente,
-                "nome_prazo": nome_prazo or "Prazo confirmado",
+                "nome_prazo": nome_prazo or "Prazo identificado",
                 "origem_prazo": origem_prazo,
                 "status": status,
                 "dias_restantes": (data_vencimento - hoje).days,
+                "quantidade_dias": resultado[13] if len(resultado) > 13 else None,
             },
         })
 
-    # Compromissos identificados automaticamente no DJEN + IA já armazenada.
-    # Não dependem de confirmação manual e não são vencimentos judiciais.
-    eventos.extend(eventos_pericias_automaticas(usuario_id))
-    # Prévia independente de confirmação humana, explicitamente não validada.
-    eventos.extend(eventos_prazos_provisorios_automaticos(usuario_id))
+    for evento in eventos_automaticos:
+        if evento['extendedProps']['status'] != 'pendente':
+            continue
+        vencimento = date.fromisoformat(evento['start'][:10])
+        evento['extendedProps']['dias_restantes'] = (vencimento - hoje).days
+        evento['backgroundColor'] = definir_cor(vencimento, cores, hoje)
+        evento['borderColor'] = 'transparent'
+        evento['textColor'] = '#29231D'
+        eventos.append(evento)
     return jsonify(eventos)
 
 
@@ -367,19 +364,22 @@ def alternar_estimativa_calendario(prazo_id):
     "/prazo/<int:prazo_id>/editar",
     methods=["GET", "POST"]
 )
+@calendario_bp.route('/publicacao/<int:publicacao_id>/editar', methods=['GET', 'POST'], endpoint='editar_publicacao')
 @login_obrigatorio
-def editar_prazo(prazo_id):
+def editar_prazo(prazo_id=None, publicacao_id=None):
     usuario_id = session["usuario_id"]
-    prazo = buscar_detalhes_prazo(prazo_id, usuario_id)
+    prazo = (buscar_detalhes_prazo(prazo_id, usuario_id) if prazo_id is not None
+             else buscar_detalhes_publicacao(publicacao_id, usuario_id))
 
     if not prazo:
         abort(404)
 
+    prazo.setdefault("personalizado_manualmente", False)
+    prazo.setdefault("revisao_estado", None)
+
     # Registros legados em triagem não são vencimentos confirmados.
     # O indicador também é necessário na tela de edição.
-    prazo["triagem"] = not tem_confirmacao_humana(
-        prazo["personalizado_manualmente"], prazo["revisao_estado"]
-    )
+    aplicar_estado_legado(prazo)
 
     # Compromissos e prévias são gerados automaticamente, inclusive ao editar.
     # Não é necessário confirmar um prazo para estes eventos existirem.
@@ -424,7 +424,8 @@ def editar_prazo(prazo_id):
                 data_vencimento.isoformat()
                 if data_vencimento else ""
             ),
-            "data_alerta": data_alerta
+            "data_alerta": data_alerta,
+            "observacoes": prazo.get("observacoes") or ""
         }
 
     else:
@@ -450,7 +451,10 @@ def editar_prazo(prazo_id):
             "data_vencimento": request.form.get(
                 "data_vencimento", ""
             ),
-            "data_alerta": request.form.get("data_alerta", "")
+            "data_alerta": request.form.get("data_alerta", ""),
+            "observacoes": request.form.get(
+                "observacoes", prazo.get("observacoes") or ""
+            ).strip()
         }
 
         if not dados["numero_processo"]:
@@ -551,23 +555,22 @@ def editar_prazo(prazo_id):
                 "data_publicacao": data_publicacao,
                 "data_vencimento": data_vencimento,
                 "alterar_vencimento": alterar_vencimento,
-                "alerta_proximidade": alerta_proximidade
+                "alerta_proximidade": alerta_proximidade,
+                "observacoes": dados["observacoes"] or None
             }
 
             try:
-                atualizado = atualizar_dados_prazo(
-                    prazo_id, usuario_id, atualizacao
-                )
+                if prazo_id is None:
+                    atualizado = atualizar_dados_publicacao(publicacao_id, usuario_id, atualizacao)
+                else:
+                    atualizado = atualizar_dados_prazo(prazo_id, usuario_id, atualizacao)
             except ValueError as erro:
                 erros.append(str(erro))
             else:
                 if not atualizado:
                     abort(404)
 
-                return redirect(url_for(
-                    "calendario.detalhes_prazo",
-                    prazo_id=prazo_id
-                ))
+                return redirect(url_for("calendario.detalhes_publicacao", publicacao_id=prazo['publicacao_id']))
 
     return render_template(
         "prazo_editar.html",
@@ -653,3 +656,25 @@ def confirmar_prazo_sugerido(prazo_id):
         "calendario.detalhes_prazo",
         prazo_id=prazo_id
     ))
+
+
+@calendario_bp.route('/evento/<int:evento_id>/editar', methods=['POST'])
+@login_obrigatorio
+def editar_evento_automatico(evento_id):
+    token = session.get('csrf_token', '')
+    if not token or not hmac.compare_digest(request.form.get('csrf_token', ''), token):
+        abort(403)
+    try:
+        alteracoes = {}
+        for campo in ('inicio', 'nome', 'status'):
+            if campo in request.form:
+                alteracoes[campo] = request.form[campo].strip()
+        if 'alerta' in request.form:
+            valor = request.form['alerta'].strip()
+            alteracoes['alerta'] = int(valor) if valor else None
+        publicacao_id = editar_evento(evento_id, session['usuario_id'], **alteracoes)
+    except ValueError as erro:
+        abort(400, description=str(erro))
+    if publicacao_id is None:
+        abort(404)
+    return redirect(url_for('calendario.detalhes_publicacao', publicacao_id=publicacao_id))

@@ -1,3 +1,5 @@
+-- SOMENTE BANCO NOVO E VAZIO. Não reutilizar como migração.
+-- Em banco existente, usar apenas migrações aditivas faltantes.
 -- MySQL dump 10.13  Distrib 8.0.46, for Win64 (x86_64)
 --
 -- Host: localhost    Database: prazus_db
@@ -19,7 +21,6 @@
 -- Table structure for table `acompanhamentos_publicacoes`
 --
 
-DROP TABLE IF EXISTS `acompanhamentos_publicacoes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `acompanhamentos_publicacoes` (
@@ -41,7 +42,6 @@ CREATE TABLE `acompanhamentos_publicacoes` (
 -- Table structure for table `analises_ia`
 --
 
-DROP TABLE IF EXISTS `analises_ia`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `analises_ia` (
@@ -72,7 +72,6 @@ CREATE TABLE `analises_ia` (
 -- Table structure for table `apscheduler_jobs`
 --
 
-DROP TABLE IF EXISTS `apscheduler_jobs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `apscheduler_jobs` (
@@ -88,7 +87,6 @@ CREATE TABLE `apscheduler_jobs` (
 -- Table structure for table `configuracoes_usuario`
 --
 
-DROP TABLE IF EXISTS `configuracoes_usuario`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `configuracoes_usuario` (
@@ -113,7 +111,6 @@ CREATE TABLE `configuracoes_usuario` (
 -- Table structure for table `cota_ia_diaria`
 --
 
-DROP TABLE IF EXISTS `cota_ia_diaria`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `cota_ia_diaria` (
@@ -128,7 +125,6 @@ CREATE TABLE `cota_ia_diaria` (
 -- Table structure for table `feriados`
 --
 
-DROP TABLE IF EXISTS `feriados`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `feriados` (
@@ -148,7 +144,6 @@ CREATE TABLE `feriados` (
 -- Table structure for table `historico_alteracoes`
 --
 
-DROP TABLE IF EXISTS `historico_alteracoes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `historico_alteracoes` (
@@ -171,7 +166,6 @@ CREATE TABLE `historico_alteracoes` (
 -- Table structure for table `historico_execucoes`
 --
 
-DROP TABLE IF EXISTS `historico_execucoes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `historico_execucoes` (
@@ -194,7 +188,6 @@ CREATE TABLE `historico_execucoes` (
 -- Table structure for table `metadados_comunicacao_djen`
 --
 
-DROP TABLE IF EXISTS `metadados_comunicacao_djen`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `metadados_comunicacao_djen` (
@@ -219,7 +212,6 @@ CREATE TABLE `metadados_comunicacao_djen` (
 -- Table structure for table `notificacoes`
 --
 
-DROP TABLE IF EXISTS `notificacoes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `notificacoes` (
@@ -246,7 +238,6 @@ CREATE TABLE `notificacoes` (
 -- Table structure for table `prazos`
 --
 
-DROP TABLE IF EXISTS `prazos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `prazos` (
@@ -284,7 +275,6 @@ CREATE TABLE `prazos` (
 -- Table structure for table `processos`
 --
 
-DROP TABLE IF EXISTS `processos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `processos` (
@@ -313,7 +303,6 @@ CREATE TABLE `processos` (
 -- Table structure for table `publicacoes`
 --
 
-DROP TABLE IF EXISTS `publicacoes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `publicacoes` (
@@ -337,7 +326,6 @@ CREATE TABLE `publicacoes` (
 -- Table structure for table `usuarios`
 --
 
-DROP TABLE IF EXISTS `usuarios`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `usuarios` (

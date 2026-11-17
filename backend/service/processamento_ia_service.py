@@ -111,6 +111,7 @@ def processar_publicacao(
         return {
             "estado": reserva["estado"],
             "id": reserva["id"],
+            "chamada_iniciada": False,
             "origem": (
                 "cache"
                 if reserva["estado"] == "concluida"
@@ -139,6 +140,7 @@ def processar_publicacao(
             "estado": "concluida",
             "id": reserva["id"],
             "origem": "gemini",
+            "chamada_iniciada": True,
         }
 
     except Exception as erro:
@@ -160,4 +162,5 @@ def processar_publicacao(
             "id": reserva["id"],
             "erro_tipo": type(erro).__name__,
             "erro_codigo": codigo,
+            "chamada_iniciada": True,
         }

@@ -314,12 +314,24 @@ Ative a venv:
 Execute:
 
 ```powershell
-python backend/main.py
+.\iniciar_prazus_economico.bat
 ```
 
 Acesse no navegador:
 
 http://127.0.0.1:9001
+
+O iniciador econômico usa `venv/Scripts/python.exe`, aplica até 5 tentativas globais de IA por dia e não altera seu `.env`.
+
+Na inicialização, pode consultar DJEN e reaproveitar análises existentes; novas análises estão no cron das 03h (São Paulo). O processo precisa estar ligado nesse horário. A recuperação de execuções perdidas foi registrada para revisão posterior. Abrir uma página não dispara Gemini.
+
+Diagnóstico somente leitura, sem iniciar outro Flask:
+
+```powershell
+.\iniciar_prazus_economico.bat --diagnostico 6
+```
+
+O número 6 é apenas o ID usado nos testes deste ambiente. Use o ID da conta que deseja consultar.
 
 O Flask deve estar configurado para utilizar:
 
@@ -335,15 +347,12 @@ O Flask deve estar configurado para utilizar:
 No PowerShell:
 
 ```powershell
-cd backend
-python -m compileall -q controller model repository service
-python -m unittest discover -s tests
-cd ..
+python -m backend.scripts.testar_offline
 ```
 
-O projeto já contou com 83 testes automatizados passando durante a reorganização.
+Conferência do pacote consolidado de 17/11/2026: 138 testes, 137 aprovados e 1 falha já conhecida do administrador (`test_admin_canonico_acessa_painel`, retorno 302 em vez de 200). O administrador foi mantido fora desta etapa. O comando acima força SQLite em memória, ignora configurações privadas e bloqueia a rede; ele não testa a conexão/cota real do MySQL nem usa Gemini.
 
-A quantidade de testes poderá aumentar conforme o desenvolvimento.
+Os ajustes pequenos confirmados no navegador (observações, cores, nome da conta e impressão) estão registrados em `Prazus_Checklist_Usuario.md`. As pendências da auditoria continuam abertas e separadas; este pacote não as declara corrigidas.
 
 Evite executar testes que utilizem APIs externas ou modifiquem bancos reais sem autorização.
 

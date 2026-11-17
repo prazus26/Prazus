@@ -3,6 +3,7 @@
 Não calcula vencimentos judiciais, não escreve no banco e não chama IA.
 Um compromisso datado não equivale a um prazo judicial validado.
 """
+from copy import deepcopy
 import hashlib
 import re
 import unicodedata
@@ -282,8 +283,13 @@ def construir_eventos_provisorios(*, publicacao_id, texto, disponibilizacao,
         return []
     data_evento = pericia[0].date()
     try:
+        # Ambiguidade marca a confiança; não exige confirmação humana.
+        # Representação, regra completa, evidência e marco continuam obrigatórios.
+        dados_avaliacao = deepcopy(analise)
+        for candidato in dados_avaliacao.get('prazos', []):
+            candidato['precisa_revisao'] = False
         avaliacao = avaliar_analise(
-            texto, analise, nome_advogado,
+            texto, dados_avaliacao, nome_advogado,
             destinatarioadvogados=[destinatario],
             oab_numero=oab_numero, oab_uf=oab_uf,
         )
@@ -300,6 +306,12 @@ def construir_eventos_provisorios(*, publicacao_id, texto, disponibilizacao,
             and item.get("marco_temporal") == "antes_de_evento"
             and item.get("evento_referencia") == "pericia"
         ):
+            continue
+        evidencia_item = str(analise.get('prazos', [])[item['indice']].get('evidencia', ''))
+        normal_evidencia = _sem_acentos(evidencia_item)
+        if not re.search(r'\b' + str(item['dias']) + r'\s+(?:\([^)]*\)\s*)?dias?\b', normal_evidencia):
+            continue
+        if ('uteis' if item['contagem'] == 'uteis' else 'corridos') not in normal_evidencia:
             continue
         try:
             data_previa, dados_calendario = calcular_previa_com_calendario_base(

@@ -27,6 +27,7 @@ from backend.model.metadado_comunicacao_djen import (
 )
 
 from backend.service.avaliacao_prazos_ia_service import avaliar_analise
+from backend.service.estado_prazo_service import tem_confirmacao_humana, classificar_evento
 
 from backend.controller.calendario_controller import (
     configuracao_cores,
@@ -151,6 +152,10 @@ def consultar_publicacoes(
         publicacoes = []
 
         for publicacao, processo, prazo in resultados:
+            tipo_legado = classificar_evento(prazo.origem_prazo, prazo.personalizado_manualmente,
+                prazo.revisao_estado, prazo.data_vencimento_atual, publicacao.data_disponibilizacao,
+                data_vencimento_original=prazo.data_vencimento_original)[0] if prazo else 'triagem'
+            estimativa = tipo_legado == 'triagem' 
             publicacoes.append({
                 "id": publicacao.id,
 
@@ -174,12 +179,12 @@ def consultar_publicacoes(
 
                 "dias_prazo": (
                     prazo.dias_prazo_atual
-                    if prazo else None
+                    if prazo and not estimativa else None
                 ),
 
                 "data_vencimento": (
                     prazo.data_vencimento_atual
-                    if prazo else None
+                    if prazo and not estimativa else None
                 ),
 
                 "prazo_id": (
@@ -553,8 +558,21 @@ def publicadosHoje():
         usuario_id
     )
 
+    from backend.service.agenda_eventos_service import listar_eventos
+    eventos_por_publicacao = {}
+    for evento in listar_eventos(usuario_id):
+        eventos_por_publicacao.setdefault(evento['extendedProps']['publicacao_id'], []).append(evento)
     for publicacao in publicacoes:
-
+        eventos = eventos_por_publicacao.get(publicacao['id'], [])
+        if eventos:
+            pendentes = [e for e in eventos if e['extendedProps']['status'] == 'pendente']
+            if not pendentes and all(e['extendedProps']['status'] == 'concluido' for e in eventos):
+                publicacao['status'] = 'concluido'
+            elif pendentes:
+                primeiro = min(pendentes, key=lambda e: e['start'])
+                publicacao['data_vencimento'] = date.fromisoformat(primeiro['start'][:10])
+                publicacao['nome_prazo'] = ', '.join(e['extendedProps']['nome_prazo'] for e in pendentes)
+                publicacao['dias_prazo'] = (publicacao['data_vencimento'] - hoje).days
         vencimento = publicacao[
             "data_vencimento"
         ]
@@ -697,3 +715,16 @@ def imprimir_uma_publicacao(publicacao_id):
         "publicacoes_impressao.html",
         publicacoes=publicacoes,
     )
+
+
+@publicadosHoje_bp.route('/publicacao/<int:publicacao_id>/concluir', methods=['POST'])
+@login_obrigatorio
+def concluir_publicacao(publicacao_id):
+    from backend.repository.publicacao_repository import concluir_itens_publicacao
+    import hmac
+    token = session.get('csrf_token', '')
+    if not token or not hmac.compare_digest(request.form.get('csrf_token', ''), token):
+        abort(403)
+    if not concluir_itens_publicacao(publicacao_id, session['usuario_id']):
+        abort(404)
+    return redirect(url_for('publicadosHoje.publicadosHoje', data=data_selecionada().isoformat()))

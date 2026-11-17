@@ -36,7 +36,7 @@
 
                 {% for publicacao in publicacoes %}
 
-                <article class="publicacao-card
+                <article class="publicacao-card {% if publicacao.status == 'concluido' %}publicacao-concluida{% endif %}
                     {% if publicacao.status == 'concluido' %}concluido{% endif %}"
                     style="--cor-publicacao: {{ publicacao.cor }};" data-publicacao-id="{{ publicacao.id }}">
 
@@ -150,6 +150,13 @@
                     </div>
 
                     <div class="publicacao-acoes">
+                        {% if publicacao.status != 'concluido' %}
+                        <form method="post" action="{{ url_for('publicadosHoje.concluir_publicacao', publicacao_id=publicacao.id, data=data_atual.isoformat()) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit" title="Concluir os itens existentes desta publicação">Concluir</button>
+                        </form>
+                        {% endif %}
+
 
                         <a class="publicacao-imprimir"
                             href="{{ url_for('publicadosHoje.imprimir_uma_publicacao', publicacao_id=publicacao.id) }}"
@@ -215,6 +222,7 @@
 
             <form id="form-impressao" method="POST" target="_blank"
                 action="{{ url_for('publicadosHoje.imprimir_publicacoes') }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
                 <input type="hidden" name="data" value="{{ data_atual.isoformat() }}">
 

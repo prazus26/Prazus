@@ -23,7 +23,7 @@
             {% for notificacao in notificacoes %}
 
                 <article class="notificacao
-                    {% if notificacao.visualizada %}
+                    {% if notificacao.visualizada or notificacao.historica %}
                         visualizada
                     {% else %}
                         nao-visualizada
@@ -35,7 +35,7 @@
 
                             <h3>{{ notificacao.titulo }}</h3>
 
-                            {% if not notificacao.visualizada %}
+                            {% if not notificacao.visualizada and not notificacao.historica %}
                                 <span class="notificacao-indicador"
                                       title="Não visualizada">
                                 </span>
@@ -43,6 +43,10 @@
 
                         </div>
 
+                        {% if notificacao.historica %}
+                        <p role="note"><strong>Alerta histórico</strong> — a data, o estado do evento ou o dia de referência mudou.
+                        A mensagem abaixo foi preservada para consulta e não entra no contador de alertas atuais.</p>
+                        {% endif %}
                         <p class="notificacao-mensagem">
                             {{ notificacao.mensagem }}
                         </p>
@@ -53,7 +57,9 @@
 
                         <div class="notificacao-acoes">
 
-                            {% if notificacao.prazo_id %}
+                            {% if notificacao.publicacao_id %}
+<a href="{{ url_for('calendario.detalhes_publicacao', publicacao_id=notificacao.publicacao_id) }}">Abrir publicação</a>
+{% elif notificacao.prazo_id %}
 
                                 <a class="notificacao-detalhes"
                                    href="{{ url_for('calendario.detalhes_prazo', prazo_id=notificacao.prazo_id) }}">

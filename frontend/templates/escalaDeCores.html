@@ -1,7 +1,148 @@
 {% extends 'baseUsuarioDashboard.html' %}
 
 {% block content_usuario %}
+<h1>ESCALA DE CORES</h1>
 
-<h1>Escala De Cores</h1>
+<p>
+    Escolha as cores que mostram a urgência de cada prazo,
+    de acordo com os dias que faltam para o vencimento.
+</p>
 
+<form method="post" id="form-cores" class="cores-layout">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+    <section>
+        <h2>Faixas de urgência</h2>
+
+        {% set paleta = [
+            '#FF8C69',
+            '#FCBF69',
+            '#F3E27A',
+            '#ADF3A0',
+            '#A9DCF2'
+        ] %}
+
+        {% set faixas = [
+            ('cor_vencido', 'Vencido ou hoje', cores.vencido),
+            ('cor_urgente', 'Urgente', cores.cor_urgente),
+            ('cor_atencao', 'Atenção', cores.cor_atencao),
+            ('cor_tranquilo', 'Tranquilo', cores.tranquilo)
+        ] %}
+
+        {% for campo, nome, valor in faixas %}
+        <div class="faixa-cor">
+            <div>
+                <strong>{{ nome }}</strong>
+
+                {% if campo == 'cor_urgente' %}
+                <label for="limite-urgente">
+                    Até
+                    <input
+                        id="limite-urgente"
+                        name="limite_urgente"
+                        type="number"
+                        min="0"
+                        max="364"
+                        value="{{ cores.urgente }}"
+                        required>
+                    dias
+                </label>
+
+                {% elif campo == 'cor_atencao' %}
+                <label for="limite-atencao">
+                    Até
+                    <input
+                        id="limite-atencao"
+                        name="limite_atencao"
+                        type="number"
+                        min="1"
+                        max="365"
+                        value="{{ cores.atencao }}"
+                        required>
+                    dias
+                </label>
+
+                {% elif campo == 'cor_tranquilo' %}
+                <small>Acima do limite de atenção</small>
+
+                {% else %}
+                <small>0 dias ou menos</small>
+                {% endif %}
+            </div>
+
+            <div class="paleta">
+                {% for cor in paleta %}
+                <button
+                    type="button"
+                    class="amostra-cor"
+                    style="background: {{ cor }};"
+                    data-campo="{{ campo }}"
+                    data-cor="{{ cor }}"
+                    aria-label="{{ nome }}: {{ cor }}"
+                    aria-pressed="false">
+                </button>
+                {% endfor %}
+
+                <input
+                    type="color"
+                    name="{{ campo }}"
+                    value="{{ valor }}"
+                    aria-label="Cor de {{ nome }}">
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="faixa-cor">
+            <div>
+                <strong>Sem data</strong>
+                <small>Prazo sem vencimento conhecido</small>
+            </div>
+
+            <span
+                class="amostra-cor"
+                style="background: #D9D6D0;"
+                aria-hidden="true">
+            </span>
+
+            <small>Cinza fixo</small>
+        </div>
+
+        <div class="acoes-cores">
+            <button type="submit">
+                SALVAR ALTERAÇÕES
+            </button>
+
+            <a href="{{ url_for('calendario.calendario') }}">
+                CANCELAR
+            </a>
+
+            <button type="button" id="restaurar-cores">
+                RESTAURAR CORES PADRÃO
+            </button>
+        </div>
+
+        <p role="status" id="erro-cores" aria-live="polite"></p>
+    </section>
+
+    <aside class="cores-previa">
+        <h2>Prévia</h2>
+        <p>Exemplos ilustrativos de cartões da agenda.</p>
+
+        {% for dias in [0, 3, 6, 12] %}
+        <article class="prazo-card" data-dias="{{ dias }}">
+            <strong>Cliente exemplo</strong>
+            <span>0000000-00.2026.0.00.0000</span>
+            <span>{{ dias }} dias</span>
+            <span>Compromisso exemplo</span>
+        </article>
+        {% endfor %}
+
+        <p>
+            Itens sem data aparecem em cinza na listagem,
+            sem vencimento inventado.
+        </p>
+    </aside>
+</form>
+
+<script src="{{ url_for('static', filename='javascript/cores.js') }}"></script>
 {% endblock %}

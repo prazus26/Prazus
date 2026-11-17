@@ -22,7 +22,21 @@ def validar_resultado(texto, analise):
     if not isinstance(analise.get("participantes", []), list):
         raise ValueError("Campo participantes inválido.")
     for parte in analise.get("participantes", []):
+        if not isinstance(parte, dict):
+            raise ValueError("Participante inválido.")
         evidencia = parte.get("evidencia") if isinstance(parte, dict) else None
         if evidencia and evidencia not in texto:
             raise ValueError("Participante com evidência inexistente no documento.")
+    if not isinstance(analise.get("compromissos", []), list):
+        raise ValueError("Campo compromissos inválido.")
+    for item in analise.get("compromissos", []):
+        if not isinstance(item, dict) or not isinstance(item.get("nome"), str) or not item["nome"].strip():
+            raise ValueError("Compromisso inválido.")
+        evidencia = item.get("evidencia")
+        if not isinstance(evidencia, str) or not evidencia.strip() or evidencia not in texto:
+            raise ValueError("Compromisso: trecho literal não encontrado.")
+        for campo in ("data_textual", "hora_textual"):
+            valor = item.get(campo)
+            if valor is not None and (not isinstance(valor, str) or not valor or valor not in evidencia):
+                raise ValueError("Data ou hora sem evidência literal.")
     return analise

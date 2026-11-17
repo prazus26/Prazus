@@ -120,3 +120,25 @@ def buscar_publicacao_do_usuario_por_djen(
 
     finally:
         db.close()
+
+
+def concluir_itens_publicacao(publicacao_id, usuario_id):
+    """Conclui itens existentes, sem apagar ou confirmar estimativas históricas."""
+    from backend.model.evento_publicacao import EventoPublicacao
+    from backend.model.acompanhamento_publicacao import AcompanhamentoPublicacao
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    with Session.begin() as db:
+        pub = db.query(Publicacao).join(Processo).filter(Publicacao.id == publicacao_id,
+            Processo.usuario_id == usuario_id).with_for_update().first()
+        if pub is None:
+            return False
+        for evento in db.query(EventoPublicacao).filter_by(publicacao_id=publicacao_id, status='pendente').all():
+            evento.status = 'concluido'
+        for prazo in db.query(Prazo).filter_by(publicacao_id=publicacao_id, status='pendente').all():
+            prazo.status = 'concluido'
+            prazo.concluido_em = datetime.now(ZoneInfo('America/Sao_Paulo')).replace(tzinfo=None)
+        acompanhamento = db.query(AcompanhamentoPublicacao).filter_by(publicacao_id=publicacao_id).first()
+        if acompanhamento:
+            acompanhamento.estado = 'revisada'
+        return True

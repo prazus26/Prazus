@@ -24,6 +24,16 @@ class PrazoExtraido(BaseModel):
     contagem: Literal["uteis", "corridos"] | None = None
     evidencia: str
     precisa_revisao: bool = True
+    marco: Literal["publicacao", "antes_de_evento", "data_expressa", "indeterminado"] = "indeterminado"
+    data_textual: str | None = None
+    evento_referencia: str | None = None
+
+
+class CompromissoExtraido(BaseModel):
+    nome: str
+    data_textual: str
+    hora_textual: str | None = None
+    evidencia: str
 
 
 class AnaliseJuridica(BaseModel):
@@ -36,6 +46,7 @@ class AnaliseJuridica(BaseModel):
     prazos: list[PrazoExtraido] = Field(
         default_factory=list
     )
+    compromissos: list[CompromissoExtraido] = Field(default_factory=list)
     observacoes: str | None = None
 
 
@@ -49,6 +60,14 @@ obrigações processuais com prazo.
 REGRAS GERAIS:
 - Não invente informações.
 - Não calcule datas de vencimento.
+- Em compromissos, extraia audiências, perícias e outros atos com data expressa.
+- data_textual deve ser a data dd/mm/aaaa copiada do trecho de evidência.
+- hora_textual deve copiar a hora do trecho, ou null quando não houver.
+- Cada obrigação deve ser um item separado em prazos.
+- marco=publicacao apenas quando o texto vincular o início à publicação.
+- marco=data_expressa apenas quando o documento fixar a data-limite expressamente.
+- Para antes_de_evento, evento_referencia deve identificar o compromisso datado correspondente.
+- Nos outros casos use antes_de_evento ou indeterminado, conforme a evidência.
 - Identifique os participantes e seus papéis.
 - Identifique a parte representada pelo advogado,
   somente quando houver evidência.
@@ -113,14 +132,20 @@ def analisar_publicacao(texto, nome_advogado=None):
         f"Publicação:\n{texto}"
     )
 
-    with genai.Client(api_key=chave) as cliente:
+    with genai.Client(
+        api_key=chave,
+        http_options=types.HttpOptions(
+            retry_options=types.HttpRetryOptions(attempts=1)
+        ),
+    ) as cliente:
         resposta = cliente.models.generate_content(
             model=modelo,
             contents=mensagem,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
                 response_schema=AnaliseJuridica,
-                temperature=0
+                temperature=0,
+                max_output_tokens=4096
             )
         )
 

@@ -1,122 +1,6 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalhes do acompanhamento | Prazus</title>
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            padding: 35px;
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            color: #292929;
-        }
-
-        main {
-            max-width: 1000px;
-            margin: auto;
-        }
-
-        .cabecalho {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-bottom: 25px;
-        }
-
-        .acoes {
-            display: flex;
-            gap: 10px;
-        }
-
-        .botao {
-            padding: 11px 18px;
-            border: none;
-            border-radius: 7px;
-            cursor: pointer;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-        .editar {
-            background: #315b45;
-            color: white;
-        }
-
-        .imprimir {
-            background: #dedede;
-            color: #222;
-        }
-
-        .secao {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
-        .informacoes {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-
-        .campo span {
-            display: block;
-            color: #777;
-            font-size: 13px;
-            margin-bottom: 6px;
-        }
-
-        .campo strong {
-            overflow-wrap: anywhere;
-        }
-
-        .documento {
-            white-space: pre-wrap;
-            overflow-wrap: anywhere;
-            line-height: 1.7;
-            font-size: 14px;
-        }
-
-        @media (max-width: 600px) {
-            body {
-                padding: 15px;
-            }
-
-            .informacoes {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media print {
-            body {
-                background: white;
-                padding: 0;
-            }
-
-            .nao-imprimir {
-                display: none !important;
-            }
-
-            .secao {
-                box-shadow: none;
-                border: none;
-                padding: 10px 0;
-            }
-        }
-    </style>
-
-<body>
-    <main>
+{% extends 'baseUsuarioDashboard.html' %}
+{% block content_usuario %}
+<style>.cabecalho{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:24px}.acoes{display:flex;gap:16px}.secao{padding:20px 0;border-bottom:1px solid #ded3c2}.informacoes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.campo span{display:block;color:#777;font-size:13px}.campo strong{overflow-wrap:anywhere}.documento{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}@media(max-width:700px){.informacoes{grid-template-columns:1fr}}@media print{header,.sidebar,.nao-imprimir{display:none!important}html,body,.app-layout,.main-content{height:auto!important;overflow:visible!important}.main-content{padding:0!important}.secao{break-inside:avoid}}</style>
         <div class="cabecalho nao-imprimir">
             <h1>Detalhes do acompanhamento</h1>
 
@@ -130,20 +14,29 @@
                     Editar informações
                 </a>
                 {% else %}
-                <a class="botao editar" href="{{ url_for('calendario.novo_prazo_publicacao', publicacao_id=prazo.publicacao_id) }}">Registrar prazo após revisão</a>
+                <a class="botao editar" href="{{ url_for('calendario.editar_publicacao', publicacao_id=prazo.publicacao_id) }}">Editar informações</a>
                 {% endif %}
             </div>
-            {% if prazo.prazo_id and prazo.revisao_estado != "confirmada" and prazo.personalizado_manualmente != True %}
-            <p role="note">Publicação para revisão. Datas anteriormente calculadas
-            ou extraídas automaticamente não são vencimentos validados.</p>
+            {% if eventos_automaticos %}
+            <p role="note">Os eventos abaixo entram automaticamente na agenda. A edição é opcional.
+            Consulte em cada evento a origem da data e a cobertura do calendário.</p>
+            {% elif prazo.ajuste_historico %}
+            <p role="note">Ajuste histórico preservado: o vencimento atual difere do original.
+            Isso não atribui autoria à alteração nem valida juridicamente a data. A edição é opcional.</p>
+            {% elif prazo.prazo_id and prazo.revisao_estado != "confirmada" and prazo.personalizado_manualmente != True %}
+            <p role="note">Este registro veio do fluxo antigo.
+            {% if prazo.origem_prazo == 'estimativa_prazus' %}A estimativa histórica não é um vencimento judicial.
+            {% else %}A origem e a regra desta data histórica ainda precisam ser verificadas; ela não equivale a um evento da análise automática atual.{% endif %}
+            A edição é opcional.</p>
             {% endif %}
             {% if prazo.acompanhamento_estado == "dispensada" %}
-            <p role="status">Acompanhamento dispensado após revisão. O documento DJEN permanece preservado.</p>
-            {% elif prazo.acompanhamento_estado == "pendente"
+            <p role="status">Revisão da publicação encerrada. Os eventos existentes e o documento DJEN permanecem preservados.</p>
+            {% elif prazo.acompanhamento_estado == "pendente" and not prazo.ajuste_historico
               and prazo.revisao_estado != "confirmada" and prazo.personalizado_manualmente != True %}
             <form method="post" action="{{ url_for('calendario.dispensar_publicacao', publicacao_id=prazo.publicacao_id) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                <button type="submit" class="botao imprimir">Revisei: não requer acompanhamento</button>
+                <button type="submit" class="botao imprimir">Marcar publicação como revisada (opcional)</button>
+                <p>Essa ação não cancela compromissos. Para concluir ou cancelar um evento, use sua edição opcional abaixo.</p>
             </form>
             {% endif %}
         </div>
@@ -209,12 +102,30 @@
                     {% if evento.extendedProps.tipo == 'pericia' %}
                         <span>Perícia agendada</span>
                         <strong>{{ evento.start[8:10] }}/{{ evento.start[5:7] }}/{{ evento.start[:4] }}{% if not evento.allDay %} às {{ evento.start[11:16] }}{% endif %}</strong>
-                        <p>Compromisso automático extraído do documento.</p>
                     {% elif evento.extendedProps.tipo == 'prazo_provisorio' %}
                         <span>Data-limite calculada automaticamente — provisória</span>
                         <strong>{{ evento.start[8:10] }}/{{ evento.start[5:7] }}/{{ evento.start[:4] }}</strong>
                         <p>{{ evento.extendedProps.nome_prazo }}</p>
-                        <p>{{ evento.extendedProps.aviso }}</p>
+                    {% else %}
+                        <span>Compromisso identificado</span>
+                        <strong>{{ evento.start }}</strong>
+                        <p>{{ evento.extendedProps.nome_prazo }}</p>
+                    {% endif %}
+                    <p>Estado: {{ evento.extendedProps.status }}.</p>
+                    {% if evento.extendedProps.aviso %}<p>{{ evento.extendedProps.aviso }}</p>{% endif %}
+                    {% if evento.extendedProps.evento_id %}
+                    <details class="nao-imprimir"><summary>Editar este evento (opcional)</summary>
+                    <form method="post" action="{{ url_for('calendario.editar_evento_automatico', evento_id=evento.extendedProps.evento_id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <label>Compromisso <input name="nome" maxlength="150" value="{{ evento.extendedProps.nome_prazo }}"></label>
+                        <label>{% if evento.allDay %}Data{% else %}Data e horário{% endif %}
+                        <input name="inicio" type="{{ 'date' if evento.allDay else 'datetime-local' }}"
+                               step="1" value="{{ evento.start }}"></label>
+                        <label>Estado <select name="status">{% for estado in ['pendente','concluido','cancelado'] %}<option {% if estado == evento.extendedProps.status %}selected{% endif %}>{{ estado }}</option>{% endfor %}</select></label>
+                        <label>Alerta, dias antes <input type="number" min="0" max="3650" name="alerta" value="{{ evento.extendedProps.alerta_proximidade if evento.extendedProps.alerta_proximidade is not none else '' }}"></label>
+                        <p>Deixe nome/data vazios para restaurar o valor automático.</p>
+                        <button>Salvar ajuste</button>
+                    </form></details>
                     {% endif %}
                 </div>
             {% endfor %}
@@ -222,50 +133,54 @@
         </section>
         {% endif %}
 
+        {% if prazo.prazo_id and prazo.triagem %}
         <section class="secao">
-            <h2>Informações do acompanhamento</h2>
-            {% if not prazo.prazo_id %}
-            <p role="note">Esta publicação ainda não possui prazo processual cadastrado.
-            É um item de acompanhamento, não um vencimento judicial.</p>
+            <details id="historico-legado">
+                <summary>Histórico do sistema anterior — não determina os eventos da agenda</summary>
+                <p>Este registro foi preservado para consulta. Seus dias, sua contagem e sua data
+                não são usados como vencimento ativo pelo fluxo automático atual.</p>
+                {% if prazo.origem_prazo == 'estimativa_prazus' %}
+                <p>É uma estimativa antiga do Prazus, não um prazo extraído e calculado a partir
+                da análise atual do documento.</p>
+                {% endif %}
+                <div class="informacoes">
+                    <div class="campo"><span>Nome histórico</span><strong>{{ prazo.nome_prazo or "Não informado" }}</strong></div>
+                    <div class="campo"><span>Quantidade de dias histórica</span><strong>{{ prazo.dias_prazo_atual if prazo.dias_prazo_atual is not none else "Não definida" }}</strong></div>
+                    <div class="campo"><span>Início histórico</span><strong>{{ prazo.data_inicio or "Não definido" }}</strong></div>
+                    <div class="campo"><span>Vencimento histórico — não é data de evento atual</span><strong>{{ prazo.data_vencimento or "Não definido" }}</strong></div>
+                    <div class="campo"><span>Contagem histórica</span><strong>{{ prazo.tipo_contagem or "Não definida" }}</strong></div>
+                    <div class="campo"><span>Estado do registro histórico</span><strong>{{ prazo.status }}</strong></div>
+                </div>
+            </details>
+        </section>
+        {% elif prazo.prazo_id %}
+        <section class="secao">
+            <h2>Informações do acompanhamento preservado</h2>
+            {% if prazo.ajuste_historico %}
+            <p>Esta data conserva o ajuste histórico descrito acima. Ela não substitui as datas
+            individuais dos eventos automáticos nem representa validação jurídica.</p>
+            {% endif %}
+            <div class="informacoes">
+                <div class="campo"><span>Nome do prazo</span><strong>{{ prazo.nome_prazo or "Não informado" }}</strong></div>
+                <div class="campo"><span>Dias configurados</span><strong>{{ prazo.dias_prazo_atual if prazo.dias_prazo_atual is not none else "Não definido" }}</strong></div>
+                <div class="campo"><span>Data de início</span><strong>{{ prazo.data_inicio or "Não definida" }}</strong></div>
+                <div class="campo"><span>Data de vencimento</span><strong>{{ prazo.data_vencimento or "Sem vencimento calculado" }}</strong></div>
+                <div class="campo"><span>Contagem</span><strong>{{ prazo.tipo_contagem or "Não definida" }}</strong></div>
+                <div class="campo"><span>Status</span><strong>{{ prazo.status }}</strong></div>
+            </div>
+        </section>
+        {% elif not eventos_automaticos %}
+        <section class="secao">
+            <h2>Acompanhamento da publicação</h2>
+            <p>Esta publicação ainda não possui evento com data calculável a partir dos dados disponíveis.
+            Não foi atribuído vencimento arbitrário.</p>
             {% if prazo.dias_sugeridos %}
-            <p>Menção encontrada para revisão: {{ prazo.dias_sugeridos }} dias
+            <p>Menção identificada no texto: {{ prazo.dias_sugeridos }} dias
             {% if prazo.tipo_contagem_sugerida %}({{ prazo.tipo_contagem_sugerida }}){% endif %}.
             Trecho: {{ prazo.trecho_sugerido }}</p>
             {% endif %}
-            {% endif %}
-
-            <div class="informacoes">
-                <div class="campo">
-                    <span>Nome do prazo</span>
-                    <strong>{{ prazo.nome_prazo or "Não informado" }}</strong>
-                </div>
-
-                <div class="campo">
-                    <span>Dias configurados</span>
-                    <strong>{% if prazo.triagem %}Não validado{% else %}{{ prazo.dias_prazo_atual or "Não definido" }}{% endif %}</strong>
-                </div>
-
-                <div class="campo">
-                    <span>Data de início</span>
-                    <strong>{% if prazo.triagem %}Não validada{% else %}{{ prazo.data_inicio or "Não definida" }}{% endif %}</strong>
-                </div>
-
-                <div class="campo">
-                    <span>Data de vencimento</span>
-                    <strong>{% if prazo.triagem %}Sem vencimento confirmado{% else %}{{ prazo.data_vencimento or "Sem vencimento" }}{% endif %}</strong>
-                </div>
-
-                <div class="campo">
-                    <span>Contagem</span>
-                    <strong>{% if prazo.triagem %}Não validada{% else %}{{ prazo.tipo_contagem or "Não definida" }}{% endif %}</strong>
-                </div>
-
-                <div class="campo">
-                    <span>Status</span>
-                    <strong>{{ prazo.status }}</strong>
-                </div>
-            </div>
         </section>
+        {% endif %}
 
         <section class="secao">
             <h2>Observações da advogada</h2>
@@ -285,9 +200,12 @@
                 {{ prazo.identificador_djen }}
             </p>
 
-            <div class="documento">{{ prazo.conteudo_original }}</div>
+            <p>Versão em texto para leitura. O conteúdo recebido do DJEN permanece preservado.</p>
+            <div class="documento">{{ prazo.conteudo_original | documento_texto }}</div>
+            <details class="nao-imprimir">
+                <summary>Ver conteúdo bruto recebido do DJEN</summary>
+                <pre class="documento">{{ prazo.conteudo_original }}</pre>
+            </details>
         </section>
-    </main>
-</body>
 
-</html>
+{% endblock %}

@@ -23,6 +23,8 @@ class Notificacao(Base):
         nullable=True
     )
 
+    evento_id = Column(Integer, ForeignKey('eventos_publicacao.id'), nullable=True)
+
     chave_evento = Column(String(150), nullable=False)
 
     titulo = Column(String(150), nullable=False)

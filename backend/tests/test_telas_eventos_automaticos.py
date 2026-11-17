@@ -23,8 +23,8 @@ class TelasAutomacaoTests(unittest.TestCase):
 
     def test_edicao_define_triagem_antes_de_utilizar(self):
         texto = corpo_funcao('editar_prazo')
-        self.assertIn('prazo["triagem"] = not tem_confirmacao_humana(', texto)
-        self.assertLess(texto.index('prazo["triagem"] ='), texto.index('if request.method == "GET":'))
+        self.assertIn('aplicar_estado_legado(prazo)', texto)
+        self.assertLess(texto.index('aplicar_estado_legado(prazo)'), texto.index('if request.method == "GET":'))
 
     def test_edicao_exibe_eventos_sem_confirmacao(self):
         texto = corpo_funcao('editar_prazo')

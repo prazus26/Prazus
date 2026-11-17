@@ -13,7 +13,7 @@ class Usuario(Base):
     )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    nome = Column(String(100), nullable=False)
+    nome = Column(String(100), nullable=True)
     email = Column(String(150), unique=True, nullable=False)
     senha_hash = Column(String(255), nullable=False)
     tipo = Column(String(20), nullable=False, default="advogado")

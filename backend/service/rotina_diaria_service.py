@@ -1,7 +1,7 @@
 """Sincroniza o DJEN, processa análises pendentes e atualiza notificações.
 
-As prévias do FullCalendar são calculadas ao consultar a API do calendário;
-esta rotina NÃO grava prazos fictícios nem promove candidatos a confirmados.
+Os eventos 1:N são persistidos a partir das análises salvas.
+Não grava prazos fictícios nem promove candidatos a confirmados.
 """
 import os
 from datetime import datetime, timedelta
@@ -11,6 +11,7 @@ from backend.repository.usuario_repository import buscar_advogados_para_sincroni
 from backend.service.sincronizacao_djen_service import sincronizar_advogado
 from backend.service.acompanhamento_service import registrar_acompanhamentos_advogado
 from backend.service.notificacao_service import gerar_notificacoes
+from backend.service.agenda_eventos_service import sincronizar_eventos
 from backend.service.fila_ia_service import processar_pendentes_advogado
 
 
@@ -22,15 +23,16 @@ def _inteiro_configurado(nome, padrao, minimo, maximo):
     return max(minimo, min(maximo, valor))
 
 
-def executar_rotina_diaria():
+def executar_rotina_diaria(*, permitir_ia=True):
     """Execução repetível: DJEN deduplica e IA utiliza cache por hash."""
     hoje = datetime.now(ZoneInfo("America/Sao_Paulo")).date()
     # Janela móvel de recuperação: 30 dias por padrão, configurável até 365.
     # Não é checkpoint permanente: interrupções maiores exigem ampliar a janela.
     janela = _inteiro_configurado("PRAZUS_DJEN_JANELA_DIAS", 30, 3, 365)
     data_inicio = hoje - timedelta(days=janela)
-    ia_habilitada = os.getenv("PRAZUS_IA_ENABLED", "0") == "1"
-    limite_ia = _inteiro_configurado("PRAZUS_IA_MAX_POR_EXECUCAO", 3, 1, 20)
+    ia_configurada = os.getenv("PRAZUS_IA_ENABLED", "0") == "1"
+    ia_habilitada = ia_configurada and permitir_ia
+    limite_ia = _inteiro_configurado("PRAZUS_IA_MAX_POR_EXECUCAO", 5, 1, 20)
 
     resultados = []
     for advogado in buscar_advogados_para_sincronizacao():
@@ -39,11 +41,12 @@ def executar_rotina_diaria():
             "djen": None,
             "intervalo_djen": {"inicio": data_inicio.isoformat(), "fim": hoje.isoformat()},
             "prazos": {"automaticos_criados": 0,
-                       "motivo": "Eventos calculados dinamicamente pelo calendário; nenhum prazo confirmado é criado"},
+                       "motivo": "Eventos 1:N persistidos separadamente; prazos legados preservados"},
             "estimativas_criadas": 0,
             "acompanhamentos": None,
             "notificacoes": None,
-            "analises_ia": {"estado": "desativada" if not ia_habilitada else "pendente"},
+            "analises_ia": {"estado": ("adiada_para_agendamento" if ia_configurada and not permitir_ia
+                                      else "pendente" if ia_habilitada else "desativada")},
             "erros": [],
         }
         try:
@@ -72,9 +75,18 @@ def executar_rotina_diaria():
                 resultado["analises_ia"] = processar_pendentes_advogado(
                     advogado.id, limite=limite_ia
                 )
+                if resultado["analises_ia"].get("falhas"):
+                    resultado["erros"].append("IA: falha de análise registrada; consultar código da fila")
             except Exception as erro:
                 resultado["analises_ia"] = {"estado": "erro"}
                 resultado["erros"].append(f"IA: {type(erro).__name__}")
+
+        try:
+            resultado["eventos"] = sincronizar_eventos(advogado.id)
+            if resultado["eventos"].get("erros"):
+                resultado["erros"].append("Eventos: análise salva inválida para geração")
+        except Exception as erro:
+            resultado["erros"].append(f"Eventos: {type(erro).__name__}")
 
         try:
             resultado["notificacoes"] = gerar_notificacoes(advogado.id)

@@ -1,0 +1,3 @@
+.publicacao-card{border:1px solid #9F8158;border-radius:8px;padding:20px;margin:16px 0;overflow-wrap:anywhere}
+.publicacao-informacoes{display:flex;flex-wrap:wrap;gap:12px}
+@media print{.sidebar,header,button{display:none}}

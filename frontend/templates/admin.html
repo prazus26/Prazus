@@ -1,0 +1,8 @@
+{% extends 'baseUsuarioDashboard.html' %}
+{% block content_usuario %}
+<h1>Administração</h1>
+<p>Visão operacional da importação e das análises.</p>
+{% for nome, total in totais.items() %}<p>{{ nome|capitalize }}: <strong>{{ total }}</strong></p>{% endfor %}
+<h2>Análises</h2>
+{% for estado, total in analises %}<p>{{ estado }}: {{ total }}</p>{% else %}<p>Nenhuma análise registrada.</p>{% endfor %}
+{% endblock %}

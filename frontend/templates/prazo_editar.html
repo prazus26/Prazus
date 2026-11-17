@@ -106,7 +106,7 @@
     <div class="editar-topo">
         <h1>EDITAR</h1>
 
-        <a href="{{ url_for('calendario.detalhes_prazo', prazo_id=prazo.prazo_id) }}"
+        <a href="{{ url_for('calendario.detalhes_publicacao', publicacao_id=prazo.publicacao_id) }}"
            class="editar-voltar">
             voltar
         </a>
@@ -122,7 +122,7 @@
 
     <form
         method="POST"
-        action="{{ url_for('calendario.editar_prazo', prazo_id=prazo.prazo_id) }}"
+        action="{{ url_for('calendario.editar_prazo', prazo_id=prazo.prazo_id) if prazo.prazo_id else url_for('calendario.editar_publicacao', publicacao_id=prazo.publicacao_id) }}"
         class="formulario-editar"
     >
 
@@ -221,6 +221,7 @@
 
         <div class="editar-campo">
             <label for="data_vencimento">Ajustar vencimento (opcional)</label>
+            {% if not prazo.prazo_id %}<p>As datas de cada evento automático podem ser ajustadas individualmente nos detalhes da publicação.</p>{% endif %}
             {% if prazo.triagem %}
             <p style="color:#8a5322;font-size:13px;">
                 O antigo registro possui uma estimativa não validada.
@@ -231,6 +232,7 @@
             {% endif %}
             <input
                 type="date"
+                {% if not prazo.prazo_id %}disabled{% endif %}
                 id="data_vencimento"
                 name="data_vencimento"
                 value="{{ dados.data_vencimento }}"
@@ -247,13 +249,20 @@
             >
         </div>
 
+        <div class="editar-campo">
+            <label for="observacoes">Observações do processo</label>
+            <textarea id="observacoes" name="observacoes" rows="5"
+                      aria-describedby="observacoes-ajuda">{{ dados.observacoes }}</textarea>
+            <p id="observacoes-ajuda">Estas anotações aparecem nos detalhes de todas as publicações deste processo.</p>
+        </div>
+
         <div class="editar-botoes">
             <button type="submit" class="editar-salvar">
                 SALVAR ALTERAÇÕES
             </button>
 
             <a
-                href="{{ url_for('calendario.detalhes_prazo', prazo_id=prazo.prazo_id) }}"
+                href="{{ url_for('calendario.detalhes_publicacao', publicacao_id=prazo.publicacao_id) }}"
                 class="editar-cancelar"
             >
                 CANCELAR

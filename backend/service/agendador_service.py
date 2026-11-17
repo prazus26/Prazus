@@ -8,6 +8,7 @@ import logging
 from threading import Lock
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+from pathlib import Path
 
 from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -20,13 +21,14 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL não configurada no ambiente")
 
-os.makedirs("logs", exist_ok=True)
+PASTA_LOGS = Path(__file__).resolve().parents[2] / "logs"
+PASTA_LOGS.mkdir(parents=True, exist_ok=True)
 logger = logging.getLogger("prazus.rotina")
 logger.setLevel(logging.INFO)
 logger.propagate = False
 
 if not logger.handlers:
-    arquivo_log = logging.FileHandler("logs/rotina_diaria.log", encoding="utf-8")
+    arquivo_log = logging.FileHandler(PASTA_LOGS / "rotina_diaria.log", encoding="utf-8")
     arquivo_log.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     logger.addHandler(arquivo_log)
 
@@ -39,14 +41,14 @@ agendador = BackgroundScheduler(
 )
 
 
-def executar_rotina_agendada():
+def executar_rotina_agendada(*, permitir_ia=True):
     # Impede sobreposição entre execução ao iniciar e o cron das 03:00.
     if not _TRAVA_EXECUCAO.acquire(blocking=False):
         logger.info("Rotina já em execução neste processo; esta chamada foi ignorada")
         return
     try:
         logger.info("Iniciando sincronização automática Prazus")
-        relatorio = executar_rotina_diaria()
+        relatorio = executar_rotina_diaria(permitir_ia=permitir_ia)
         logger.info("Rotina concluída. Advogados: %s", relatorio["advogados_processados"])
         for item in relatorio["resultados"]:
             djen = item.get("djen") or {}
@@ -54,24 +56,25 @@ def executar_rotina_agendada():
             acompanhamentos = item.get("acompanhamentos") or {}
             notificacoes = item.get("notificacoes") or {}
 
+            selecao = ia.get('selecao') or {}
+            eventos = item.get('eventos') or {}
+            codigos = sorted({r.get('erro_codigo') for r in ia.get('resultados', []) if r.get('erro_codigo')})
             logger.info(
-                "Usuário id=%s | "
-                "DJEN encontradas=%s, importadas=%s, ignoradas=%s | "
-                "IA estado=%s, verificadas=%s | "
-                "Acompanhamentos=%s | "
-                "Notificações verificadas=%s, criadas=%s | "
-                "Erros=%s",
-                item["usuario_id"],
-                djen.get("total_encontrado", 0),
-                djen.get("importadas", 0),
-                djen.get("ignoradas", 0),
-                ia.get("estado", "habilitada"),
-                ia.get("publicacoes_verificadas", 0),
-                acompanhamentos.get("acompanhamentos_criados", 0),
-                notificacoes.get("prazos_verificados", 0),
-                notificacoes.get("notificacoes_criadas", 0),
-                item.get("erros", []),
-            )
+                "Usuário id=%s | DJEN encontradas=%s, importadas=%s, ignoradas=%s | "
+                "IA estado=%s, elegiveis=%s, cache=%s, adiadas=%s, verificadas=%s, "
+                "chamadas=%s, concluidas=%s, falhas=%s, cota_diaria=%s, codigos=%s | "
+                "Eventos ativos=%s, erros=%s | Acompanhamentos=%s | "
+                "Notificações verificadas=%s, criadas=%s | Erros=%s",
+                item['usuario_id'], djen.get('total_encontrado', 0), djen.get('importadas', 0),
+                djen.get('ignoradas', 0), ia.get('estado', 'nao_informado'),
+                selecao.get('elegiveis', 0), selecao.get('concluidas_cache', 0),
+                selecao.get('aguardando_retentativa', 0), ia.get('publicacoes_verificadas', 0),
+                ia.get('chamadas_iniciadas', 0), ia.get('concluidas', 0), ia.get('falhas', 0),
+                ia.get('cota_diaria_atingida', False), codigos, eventos.get('eventos_ativos', 0),
+                len(eventos.get('erros', [])), acompanhamentos.get('acompanhamentos_criados', 0),
+                notificacoes.get('prazos_verificados', 0), notificacoes.get('notificacoes_criadas', 0),
+                item.get('erros', []))
+
     except Exception:
         logger.exception("Falha na rotina automática")
     finally:
@@ -89,10 +92,12 @@ def iniciar_agendador():
         max_instances=1, coalesce=True, misfire_grace_time=None,
     )
     # A execução pontual permite que a agenda recupere publicações ao iniciar.
-    # É idempotente quanto às publicações e análises já concluídas.
+    # A inicialização importa e reaproveita resultados salvos, sem chamar IA.
+    # Apenas o cron diário habilita análises novas, dentro da cota global.
     if os.getenv("PRAZUS_SINCRONIZAR_AO_INICIAR", "1") == "1":
         agendador.add_job(
             executar_rotina_agendada,
+            kwargs={"permitir_ia": False},
             trigger="date",
             run_date=datetime.now(FUSO) + timedelta(seconds=10),
             id="rotina_inicial_prazus", replace_existing=True,

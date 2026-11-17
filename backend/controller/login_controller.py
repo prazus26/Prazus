@@ -21,11 +21,12 @@ def realizar_login():
         flash("E-mail ou senha incorretos.", "erro")
         return redirect(url_for("login.login"))
 
+    session.clear()
     session["usuario_id"] = usuario.id
     session["usuario_tipo"] = usuario.tipo
 
-    if usuario.tipo == "admin":
-        return redirect(url_for("index.index"))
+    if usuario.tipo in ("admin", "administrador"):
+        return redirect(url_for("admin.painel"))
 
     return redirect(url_for("calendario.calendario"))
 

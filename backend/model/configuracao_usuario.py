@@ -18,8 +18,6 @@ class ConfiguracaoUsuario(Base):
 
     escala_cores = Column(String(30), nullable=True)
 
-    concluido_em = Column(DateTime, nullable=True)
-
     criado_em = Column(
     DateTime,
     nullable=False,

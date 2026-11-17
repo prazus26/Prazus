@@ -3,6 +3,8 @@ from backend.model.prazo import Prazo
 from backend.model.publicacao import Publicacao
 from backend.model.processo import Processo
 from backend.model.acompanhamento_publicacao import AcompanhamentoPublicacao
+from backend.model.metadado_comunicacao_djen import MetadadoComunicacaoDJEN
+from sqlalchemy import or_, and_
 from datetime import timedelta
 from backend.service.normalizacao_processo_djen_service import completar_detalhes
 
@@ -102,7 +104,9 @@ def buscar_prazos_do_usuario(usuario_id):
             Prazo.origem_prazo,
             Prazo.personalizado_manualmente,
             Prazo.revisao_estado,
-            AcompanhamentoPublicacao.estado
+            AcompanhamentoPublicacao.estado,
+            Prazo.dias_prazo_atual,
+            Prazo.data_vencimento_original
         ).join(
             Publicacao,
             Prazo.publicacao_id == Publicacao.id
@@ -112,8 +116,18 @@ def buscar_prazos_do_usuario(usuario_id):
         ).outerjoin(
             AcompanhamentoPublicacao,
             AcompanhamentoPublicacao.publicacao_id == Publicacao.id
+        ).outerjoin(
+            MetadadoComunicacaoDJEN,
+            MetadadoComunicacaoDJEN.publicacao_id == Publicacao.id
         ).filter(
             Processo.usuario_id == usuario_id,
+            or_(
+                MetadadoComunicacaoDJEN.id.is_(None),
+                and_(
+                    MetadadoComunicacaoDJEN.ativo.isnot(False),
+                    MetadadoComunicacaoDJEN.data_cancelamento.is_(None),
+                ),
+            ),
             Prazo.status == "pendente",
             Prazo.data_vencimento_atual.isnot(None)
         ).order_by(
@@ -210,6 +224,7 @@ def montar_detalhes(prazo, publicacao, processo):
         "tipo_contagem": prazo.tipo_contagem_atual,
         "data_inicio": prazo.data_inicio_atual,
         "data_vencimento": prazo.data_vencimento_atual,
+        "data_vencimento_original": prazo.data_vencimento_original,
         "origem_prazo": prazo.origem_prazo,
         "status": prazo.status,
         "alerta_proximidade": prazo.alerta_proximidade,
@@ -299,6 +314,8 @@ def atualizar_dados_prazo(prazo_id, usuario_id, dados):
         processo.tribunal = dados["tribunal"]
         processo.vara = dados["vara"]
         processo.link_processo = dados["link_processo"]
+        if "observacoes" in dados:
+            processo.observacoes_usuario = dados["observacoes"]
 
         publicacao.data_publicacao = dados["data_publicacao"]
 
@@ -454,3 +471,23 @@ def criar_prazo_confirmado_pela_advogada(publicacao_id, usuario_id, dados):
         raise
     finally:
         db.close()
+
+
+def atualizar_dados_publicacao(publicacao_id, usuario_id, dados):
+    """Edita processo/publicação sem exigir nem criar um prazo legado."""
+    with Session.begin() as db:
+        resultado = db.query(Publicacao, Processo).join(Processo).filter(
+            Publicacao.id == publicacao_id, Processo.usuario_id == usuario_id).with_for_update().first()
+        if not resultado:
+            return False
+        publicacao, processo = resultado
+        duplicado = db.query(Processo.id).filter(Processo.usuario_id == usuario_id,
+            Processo.numero_processo == dados['numero_processo'], Processo.id != processo.id).first()
+        if duplicado:
+            raise ValueError('Esse número de processo já está cadastrado.')
+        for campo in ('cliente', 'numero_processo', 'tribunal', 'vara', 'link_processo'):
+            setattr(processo, campo, dados[campo])
+        if 'observacoes' in dados:
+            processo.observacoes_usuario = dados['observacoes']
+        publicacao.data_publicacao = dados['data_publicacao']
+        return True

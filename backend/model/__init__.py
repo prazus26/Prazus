@@ -7,3 +7,4 @@ from backend.model.historico_alteracao import HistoricoAlteracao
 from backend.model.configuracao_usuario import ConfiguracaoUsuario
 from backend.model.feriado import Feriado
 from backend.model.notificacao import Notificacao
+from backend.model.evento_publicacao import EventoPublicacao

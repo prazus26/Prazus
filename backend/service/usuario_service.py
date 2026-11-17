@@ -13,13 +13,16 @@ def cadastrar_usuario(nome, email, senha, tipo="advogado",
     nome = nome.strip() if nome else None
     email = email.strip().lower() if email else ""
 
+    if len(email) > 150 or len(nome or '') > 100 or len(oab_numero or '') > 30:
+        raise ValueError("Dados excedem o tamanho permitido.")
     if not email or not senha:
         raise ValueError("E-mail e senha são obrigatórios.")
 
     if buscar_por_email(email):
         raise ValueError("Este e-mail já está cadastrado.")
 
-    if tipo not in ("admin", "advogado"):
+    tipo = "administrador" if tipo == "admin" else tipo
+    if tipo not in ("administrador", "advogado"):
         raise ValueError("Tipo de usuário inválido.")
 
     if tipo == "advogado":

@@ -29,6 +29,7 @@ def cadastrar_processo(usuario_id, numero_processo, tribunal=None,
             if cliente and not processo_existente.cliente:
                 processo_existente.cliente = cliente
                 db.commit()
+                db.refresh(processo_existente)
             return processo_existente
 
         novo_processo = Processo(

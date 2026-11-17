@@ -38,7 +38,7 @@ def dia_cota():
 
 
 def obter_limite_diario():
-    valor = int(os.getenv("PRAZUS_IA_LIMITE_DIARIO", "1"))
+    valor = int(os.getenv("PRAZUS_IA_LIMITE_DIARIO", "5"))
 
     if not 1 <= valor <= 100:
         raise ValueError(

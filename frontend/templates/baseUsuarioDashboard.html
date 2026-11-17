@@ -36,6 +36,9 @@
         <aside class="sidebar">
             <h1>Menu</h1>
             <nav class="sidebar-nav">
+                {% if session.get('usuario_tipo') in ('admin', 'administrador') %}
+                <a href="{{ url_for('admin.painel') }}">Administração</a>
+                {% endif %}
                 <a href="/Calendario" class="nav-link {% if request.path|lower == '/calendario' %}active{% endif %}">
                     <img src="/static/images/iconesSideBarUsuario/calendar.png" alt="">
                     Calendário
@@ -70,12 +73,16 @@
                 </a>
 
                 <form action="{{ url_for('login.logout') }}" method="POST">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <button type="submit">Sair</button>
                 </form>
             </nav>
         </aside>
 
         <main class="main-content">
+            {% for categoria, mensagem in get_flashed_messages(with_categories=true) %}
+            <p class="mensagem {{ categoria }}" role="status">{{ mensagem }}</p>
+            {% endfor %}
             {% block content_usuario %}
 
             {% endblock %}

@@ -1,55 +1,50 @@
 {% extends 'baseUsuarioDashboard.html' %}
 
 {% block content_usuario %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/usuario.css') }}">
 <div class="minhaContaUsuario">
     {% if usuario_logado %}
-    <form class="editarConta" action="">
+    <form class="editarConta" method="post">
         <h1>MINHA CONTA</h1>
-        <h2>Nome</h2>
-        <input type="text" placeholder="{{ usuario_logado.nome }}">
-        <h2>OAB</h2>
-        <input type="text" placeholder="{{ usuario_logado.oab_numero }}">
-        <h2>OAB UF</h2>
-        <select id="oab_uf" name="oab_uf" >
-            <option value="">{{ usuario_logado.oab_uf }}</option>
-            <option value="AC">AC</option>
-            <option value="AL">AL</option>
-            <option value="AP">AP</option>
-            <option value="AM">AM</option>
-            <option value="BA">BA</option>
-            <option value="CE">CE</option>
-            <option value="DF">DF</option>
-            <option value="ES">ES</option>
-            <option value="GO">GO</option>
-            <option value="MA">MA</option>
-            <option value="MT">MT</option>
-            <option value="MS">MS</option>
-            <option value="MG">MG</option>
-            <option value="PA">PA</option>
-            <option value="PB">PB</option>
-            <option value="PR">PR</option>
-            <option value="PE">PE</option>
-            <option value="PI">PI</option>
-            <option value="RJ">RJ</option>
-            <option value="RN">RN</option>
-            <option value="RS">RS</option>
-            <option value="RO">RO</option>
-            <option value="RR">RR</option>
-            <option value="SC">SC</option>
-            <option value="SP">SP</option>
-            <option value="SE">SE</option>
-            <option value="TO">TO</option>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        <h2><label for="conta-nome">Nome</label></h2>
+        <input id="conta-nome" name="nome" maxlength="100" required autocomplete="name"
+            value="{{ usuario_logado.nome or '' }}">
+
+        {% if usuario_logado.tipo == 'advogado' %}
+        <h2><label for="conta-oab">OAB</label></h2>
+        <input id="conta-oab" name="oab_numero" maxlength="30" required value="{{ usuario_logado.oab_numero or '' }}">
+
+        <h2><label for="conta-uf">OAB UF</label></h2>
+        <select id="conta-uf" name="oab_uf">
+            {% for uf in ufs %}
+            <option value="{{ uf }}" {% if uf==usuario_logado.oab_uf %}selected{% endif %}>{{ uf }}</option>
+            {% endfor %}
         </select>
-        <h2>Email</h2>
-        <input type="text" placeholder="{{ usuario_logado.email }}">
-        <h2>Senha</h2>
-        <input type="text">
-        <h2>Confirmar senha</h2>
-        <input type="text"><br>
-        <button>SALVAR ALTERAÇÕES</button>
-        <button class="btnCancelar">CANCELAR</button>
+        {% endif %}
+
+        <h2><label for="conta-email">E-mail</label></h2>
+        <input id="conta-email" type="email" name="email" maxlength="150" required autocomplete="email"
+            value="{{ usuario_logado.email }}">
+
+        <h2><label for="conta-senha-atual">Senha atual</label></h2>
+        <input id="conta-senha-atual" type="password" name="senha_atual" autocomplete="current-password"
+            aria-describedby="conta-ajuda-senha">
+        <p id="conta-ajuda-senha" class="conta-ajuda">Necessária para alterar e-mail, OAB ou senha. As publicações
+            anteriores permanecem vinculadas à sua conta.</p>
+
+        <h2><label for="conta-nova-senha">Nova senha (opcional)</label></h2>
+        <input id="conta-nova-senha" type="password" name="senha" minlength="8" autocomplete="new-password">
+
+        <h2><label for="conta-confirmar-senha">Confirmar nova senha</label></h2>
+        <input id="conta-confirmar-senha" type="password" name="confirmar_senha" autocomplete="new-password">
+
+        <div class="conta-acoes">
+            <button type="submit">SALVAR ALTERAÇÕES</button>
+            <a class="btnCancelar" href="{{ url_for('calendario.calendario') }}">CANCELAR</a>
+        </div>
     </form>
     {% endif %}
 </div>
-
 {% endblock %}
