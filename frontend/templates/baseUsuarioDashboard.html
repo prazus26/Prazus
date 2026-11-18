@@ -1,95 +1,488 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Prazus - Agenda Jurídica</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/usuario.css') }}">
 
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
+    <link rel="icon" type="image/png"
+        href="{{ url_for('static', filename='images/logo.png') }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Marcellus&display=swap" rel="stylesheet">
 
+    <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Marcellus&display=swap"
+        rel="stylesheet">
+
+    <!-- FullCalendar -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales/pt-br.global.min.js"></script>
+
+    <style>
+
+        /* =====================================
+           BARRA LATERAL
+        ===================================== */
+
+        .sidebar {
+            box-sizing: border-box;
+            height: calc(100vh - 123px);
+            overflow-y: hidden !important;
+            overflow-x: hidden;
+            padding-bottom: 5px;
+            scrollbar-width: none;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .sidebar > h1 {
+            font-size: 23px !important;
+            margin: 10px 5px 12px !important;
+            padding-bottom: 5px;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            padding-bottom: 3px;
+        }
+
+        /* LINKS */
+
+        .sidebar-nav .nav-link {
+            font-size: 14px !important;
+            padding: 8px 12px !important;
+            gap: 9px;
+            line-height: 1.2;
+            min-height: 32px;
+            box-sizing: border-box;
+        }
+
+        /* ÍCONES */
+
+        .sidebar-nav .nav-link img {
+            width: 19px !important;
+            height: 19px !important;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        /* =====================================
+           CALENDÁRIO LATERAL
+        ===================================== */
+
+        .sidebar-calendar {
+            width: calc(100% - 24px);
+            max-width: 100%;
+            margin: 8px auto !important;
+            padding: 6px !important;
+            background: #fff;
+            border-radius: 12px;
+            box-sizing: border-box;
+            color: #554a3d;
+            font-family: 'Marcellus', serif;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .sidebar-calendar .fc {
+            font-size: 9px !important;
+            width: 100%;
+        }
+
+        .sidebar-calendar .fc-toolbar {
+            margin-bottom: 4px !important;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .sidebar-calendar .fc-toolbar-title {
+            font-family: 'Marcellus', serif;
+            font-size: 11px !important;
+            color: #554a3d;
+            text-transform: capitalize;
+        }
+
+        .sidebar-calendar .fc-button {
+            background: transparent !important;
+            border: none !important;
+            color: #947447 !important;
+            box-shadow: none !important;
+            padding: 2px 3px !important;
+        }
+
+        .sidebar-calendar .fc-button:hover {
+            background: #f1ece5 !important;
+        }
+
+        .sidebar-calendar .fc-col-header-cell {
+            padding: 2px 0;
+            font-weight: normal;
+            color: #918477;
+        }
+
+        .sidebar-calendar .fc-col-header-cell-cushion {
+            color: #918477;
+            text-decoration: none;
+            font-weight: normal;
+        }
+
+        .sidebar-calendar .fc-daygrid-day {
+            height: 20px !important;
+        }
+
+        .sidebar-calendar .fc-daygrid-day-frame {
+            min-height: 20px !important;
+        }
+
+        .sidebar-calendar .fc-daygrid-day-number {
+            float: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 18px !important;
+            height: 18px !important;
+            margin: 1px auto !important;
+            padding: 0;
+            color: #554a3d;
+            text-decoration: none;
+        }
+
+        .sidebar-calendar .fc-day-today {
+            background: transparent !important;
+        }
+
+        .sidebar-calendar .fc-day-today .fc-daygrid-day-number {
+            background: #9477bd;
+            color: white;
+            border-radius: 50%;
+        }
+
+        .sidebar-calendar .fc-day-other .fc-daygrid-day-number {
+            opacity: .3;
+        }
+
+        .sidebar-calendar .fc-scrollgrid {
+            border: none !important;
+        }
+
+        .sidebar-calendar td,
+        .sidebar-calendar th {
+            border: none !important;
+        }
+
+        .sidebar-calendar .fc-view-harness {
+            min-height: 0 !important;
+        }
+
+        .sidebar-calendar .fc-daygrid-body {
+            width: 100% !important;
+        }
+
+        .sidebar-calendar .fc-scrollgrid-section table {
+            width: 100% !important;
+        }
+
+        /* =====================================
+           BOTÃO SAIR
+        ===================================== */
+
+        .sidebar-nav form {
+            margin: 5px auto !important;
+            flex-shrink: 0;
+        }
+
+        .sidebar-nav form button {
+            font-size: 12px !important;
+            padding: 6px 16px !important;
+        }
+
+        /* =====================================
+           AJUSTES PARA TELAS MENORES
+        ===================================== */
+
+        @media (max-width: 600px) {
+
+            .sidebar {
+                height: calc(100vh - 100px);
+            }
+
+            .sidebar > h1 {
+                font-size: 20px !important;
+            }
+
+            .sidebar-nav .nav-link {
+                font-size: 13px !important;
+                padding: 7px 9px !important;
+            }
+
+            .sidebar-calendar {
+                padding: 5px !important;
+            }
+
+        }
+
+        /* TELAS COM POUCA ALTURA */
+
+        @media (max-height: 750px) {
+
+            .sidebar > h1 {
+                margin: 5px 5px 7px !important;
+            }
+
+            .sidebar-nav {
+                gap: 0;
+            }
+
+            .sidebar-nav .nav-link {
+                padding-top: 5px !important;
+                padding-bottom: 5px !important;
+                min-height: 28px;
+            }
+
+            .sidebar-calendar {
+                margin: 5px auto !important;
+            }
+
+            .sidebar-calendar .fc-daygrid-day,
+            .sidebar-calendar .fc-daygrid-day-frame {
+                height: 18px !important;
+                min-height: 18px !important;
+            }
+
+            .sidebar-calendar .fc-daygrid-day-number {
+                height: 16px !important;
+                width: 16px !important;
+            }
+
+            .sidebar-nav form {
+                margin: 3px auto !important;
+            }
+
+        }
+
+    </style>
+
 </head>
 
 <body>
+
+    <!-- CABEÇALHO -->
+
     <header>
+
         <a href="/Calendario" class="logo">
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo Prazus">
+
+            <img src="{{ url_for('static', filename='images/logo.png') }}"
+                alt="Logo Prazus">
+
             <h1>PRAZUS</h1>
+
         </a>
+
         <div class="header-user">
+
             {% if usuario_logado %}
+
             <span>Bem-vindo, {{ usuario_logado.nome }}.</span>
+
             {% endif %}
+
         </div>
+
     </header>
+
+
+    <!-- ESTRUTURA PRINCIPAL -->
 
     <div class="app-layout">
 
+
+        <!-- MENU LATERAL -->
+
         <aside class="sidebar">
+
             <h1>Menu</h1>
+
             <nav class="sidebar-nav">
-                {% if session.get('usuario_tipo') in ('admin', 'administrador') %}
-                <a href="{{ url_for('admin.painel') }}">Administração</a>
-                {% endif %}
-                <a href="/Calendario" class="nav-link {% if request.path|lower == '/calendario' %}active{% endif %}">
-                    <img src="/static/images/iconesSideBarUsuario/calendar.png" alt="">
+
+
+                <!-- CALENDÁRIO -->
+
+                <a href="/Calendario"
+                    class="nav-link {% if request.path|lower == '/calendario' %}active{% endif %}">
+
+                    <img src="/static/images/iconesSideBarUsuario/calendar.png"
+                        alt="">
+
                     Calendário
+
                 </a>
+
+
+                <!-- PUBLICADOS HOJE -->
 
                 <a href="/PublicadosHoje"
                     class="nav-link {% if request.path|lower == '/publicadoshoje' %}active{% endif %}">
-                    <img src="/static/images/iconesSideBarUsuario/publicadosHoje.png" alt="">
+
+                    <img src="/static/images/iconesSideBarUsuario/publicadosHoje.png"
+                        alt="">
+
                     Publicados Hoje
+
                 </a>
+
+
+                <!-- NOTIFICAÇÕES -->
 
                 <a href="/Notificações"
                     class="nav-link {% if request.path|lower == '/notificações' %}active{% endif %}">
-                    <img src="/static/images/iconesSideBarUsuario/notificacoes.png" alt="">
+
+                    <img src="/static/images/iconesSideBarUsuario/notificacoes.png"
+                        alt="">
+
                     Notificações
+
                     {% if total_notificacoes > 0 %}
+
                     <span class="contador-notificacoes">
                         {{ total_notificacoes }}
                     </span>
+
                     {% endif %}
+
                 </a>
 
-                <a href="/Conta" class="nav-link {% if request.path|lower == '/conta' %}active{% endif %}">
-                    <img src="/static/images/iconesSideBarUsuario/minhaConta.png" alt="">
+
+                <!-- MINHA CONTA -->
+
+                <a href="/Conta"
+                    class="nav-link {% if request.path|lower == '/conta' %}active{% endif %}">
+
+                    <img src="/static/images/iconesSideBarUsuario/minhaConta.png"
+                        alt="">
+
                     Minha conta
+
                 </a>
+
+
+                <!-- ESCALA DE CORES -->
 
                 <a href="/EscalaDeCores"
                     class="nav-link {% if request.path|lower == '/escaladecores' %}active{% endif %}">
-                    <img src="/static/images/iconesSideBarUsuario/escalaDeCores.png" alt="">
+
+                    <img src="/static/images/iconesSideBarUsuario/escalaDeCores.png"
+                        alt="">
+
                     Escala de cores
+
                 </a>
 
+
+                <!-- CALENDÁRIO MENSAL -->
+
+                <div class="sidebar-calendar">
+
+                    <div id="calendarioSidebar"></div>
+
+                </div>
+
+
+                <!-- SAIR -->
+
                 <form action="{{ url_for('login.logout') }}" method="POST">
-<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
                     <button type="submit">Sair</button>
+
                 </form>
+
+
             </nav>
+
         </aside>
 
+
+        <!-- CONTEÚDO DAS PÁGINAS -->
+
         <main class="main-content">
-            {% for categoria, mensagem in get_flashed_messages(with_categories=true) %}
-            <p class="mensagem {{ categoria }}" role="status">{{ mensagem }}</p>
-            {% endfor %}
+
             {% block content_usuario %}
 
             {% endblock %}
+
         </main>
+
     </div>
 
+
+    <!-- JAVASCRIPT DO SISTEMA -->
+
     <script src="/static/javascript/app.js"></script>
+
+
+    <!-- CALENDÁRIO DA LATERAL -->
+
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const elemento = document.getElementById('calendarioSidebar');
+
+            if (elemento && typeof FullCalendar !== 'undefined') {
+
+                const calendario = new FullCalendar.Calendar(elemento, {
+
+                    initialView: 'dayGridMonth',
+
+                    locale: 'pt-br',
+
+                    headerToolbar: {
+                        left: 'title',
+                        right: 'prev,next'
+                    },
+
+                    height: 'auto',
+
+                    contentHeight: 'auto',
+
+                    fixedWeekCount: false,
+
+                    showNonCurrentDates: true,
+
+                    dayHeaderFormat: {
+                        weekday: 'narrow'
+                    },
+
+                    titleFormat: {
+                        month: 'long',
+                        year: 'numeric'
+                    },
+
+                    selectable: false,
+
+                    editable: false,
+
+                    dayMaxEvents: false
+
+                });
+
+                calendario.render();
+
+            }
+
+        });
+
+    </script>
+
 </body>
 
 </html>
