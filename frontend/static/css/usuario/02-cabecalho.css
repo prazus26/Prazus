@@ -1,0 +1,66 @@
+header {
+
+    background-color: var(--preto);
+
+    color: var(--branco);
+
+    display: flex;
+
+    flex-direction: row;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 20px 30px;
+
+    .logo {
+
+        color: var(--cinza);
+
+        display: flex;
+
+        flex-direction: row;
+
+        gap: 30px;
+
+        align-items: center;
+
+        text-decoration: none;
+
+        img {
+
+            width: 60px;
+
+        }
+
+        h1 {
+
+            font-family: "Italiana", sans-serif;
+
+            font-weight: 100;
+
+            font-size: 52px;
+
+            transition: 0.3s;
+
+            &:hover {
+
+                color: var(--dourado);
+
+            }
+
+        }
+
+    }
+
+    .header-user {
+
+        font-size: 24px;
+
+        color: var(--cinza);
+
+    }
+
+}
+

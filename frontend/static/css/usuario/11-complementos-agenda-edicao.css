@@ -1,0 +1,46 @@
+/* Eventos com e sem horário usam o mesmo cartão; o quarto campo fica compacto. */
+
+.calendario .fc .fc-event-main {
+    width: 100%;
+    min-width: 0;
+}
+
+.calendario .prazo-card {
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.calendario .prazo-card-compromisso {
+
+    display: -webkit-box;
+
+    -webkit-line-clamp: 3;
+
+    -webkit-box-orient: vertical;
+
+    overflow: hidden;
+
+}
+
+.cabecalho .botao,
+.cabecalho .acoes a {
+
+    display: inline-block;
+    padding: 9px 16px;
+    border: 1px solid #9F8158;
+
+    border-radius: 3px;
+    background: #9F8158;
+    color: #fff;
+
+    font: inherit;
+    text-decoration: none;
+    cursor: pointer;
+
+}
+
+.editar-campo textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+

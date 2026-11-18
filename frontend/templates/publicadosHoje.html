@@ -2,8 +2,6 @@
 
 {% block content_usuario %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/publicadosHoje.css') }}">
-
 <div class="publicados-pagina">
 
     <div class="publicados-layout">
@@ -20,10 +18,6 @@
 
                     <span>{{ data_formatada }}</span>
                 </div>
-
-                <span class="publicados-instrucao">
-                    Navegue entre os dias com as setas
-                </span>
 
                 <form method="GET" action="{{ url_for('publicadosHoje.publicadosHoje') }}"
                     class="publicados-escolher-data">
@@ -151,9 +145,11 @@
 
                     <div class="publicacao-acoes">
                         {% if publicacao.status != 'concluido' %}
-                        <form method="post" action="{{ url_for('publicadosHoje.concluir_publicacao', publicacao_id=publicacao.id, data=data_atual.isoformat()) }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                        <button type="submit" title="Concluir os itens existentes desta publicação">Concluir</button>
+                        <form method="post"
+                            action="{{ url_for('publicadosHoje.concluir_publicacao', publicacao_id=publicacao.id, data=data_atual.isoformat()) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button class="concluir" type="submit"
+                                title="Concluir os itens existentes desta publicação">Concluir</button>
                         </form>
                         {% endif %}
 
@@ -222,7 +218,7 @@
 
             <form id="form-impressao" method="POST" target="_blank"
                 action="{{ url_for('publicadosHoje.imprimir_publicacoes') }}">
-<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
                 <input type="hidden" name="data" value="{{ data_atual.isoformat() }}">
 

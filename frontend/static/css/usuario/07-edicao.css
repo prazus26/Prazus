@@ -1,0 +1,272 @@
+.app-layout {
+    .pagina-editar {
+
+        padding: 28px 35px 55px;
+
+        min-height: 100%;
+
+        background: #fff;
+
+        color: #211b17;
+
+        .editar-topo {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            margin-bottom: 28px;
+
+        }
+
+        .editar-topo h1 {
+
+            font-size: 25px;
+
+            font-weight: 400;
+
+            margin: 0;
+
+        }
+
+        .editar-voltar {
+
+            color: #aa8a60;
+
+            font-size: 13px;
+
+            text-decoration: underline;
+
+        }
+
+        .formulario-editar {
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: flex-start;
+
+            gap: 22px;
+
+            max-width: 420px;
+
+        }
+
+        .editar-campo {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 7px;
+
+            width: 100%;
+
+        }
+
+        .editar-campo label {
+
+            font-size: 16px;
+
+            font-weight: 400;
+
+            color: #25201b;
+
+        }
+
+        .editar-campo input,
+
+        .editar-campo select,
+
+        .editar-campo textarea {
+
+            box-sizing: border-box;
+
+            width: 100%;
+
+            height: 34px;
+
+            padding: 5px 9px;
+
+            color: #28231d;
+
+            background: #fff;
+
+            border: 1px solid #c9c0b3;
+
+            border-radius: 3px;
+
+            font-family: inherit;
+
+            font-size: 14px;
+
+        }
+
+        .editar-campo input:focus,
+
+        .editar-campo select:focus,
+
+        .editar-campo textarea:focus {
+
+            outline: none;
+
+            border-color: #a48660;
+
+        }
+
+        .editar-tribunal-vara {
+
+            display: flex;
+
+            gap: 8px;
+
+        }
+
+        .editar-tribunal-vara input {
+
+            flex: 1;
+
+            min-width: 0;
+
+        }
+
+        .editar-tribunal-vara select {
+
+            width: 135px;
+
+        }
+
+        .editar-data-primeira {
+
+            margin-top: 16px;
+
+        }
+
+        .editar-campo input[type="date"] {
+
+            width: 210px;
+
+            color-scheme: light;
+
+        }
+
+        .editar-botoes {
+
+            display: flex;
+
+            gap: 10px;
+
+            margin-top: 12px;
+
+        }
+
+        .editar-salvar,
+
+        .editar-cancelar {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            box-sizing: border-box;
+
+            height: 34px;
+
+            padding: 0 17px;
+
+            font-family: inherit;
+
+            font-size: 12px;
+
+            font-weight: 400;
+
+            color: #fff;
+
+            text-decoration: none;
+
+            background: #a48762;
+
+            border: 1px solid #a48762;
+
+            border-radius: 3px;
+
+            cursor: pointer;
+
+            transition: background 0.2s;
+
+        }
+
+        .editar-cancelar {
+
+            background: #786c57;
+
+            border-color: #786c57;
+
+        }
+
+        .editar-salvar:hover {
+
+            background: #8e714e;
+
+        }
+
+        .editar-cancelar:hover {
+
+            background: #5f5443;
+
+        }
+
+        .editar-erros {
+
+            max-width: 420px;
+
+            margin-bottom: 20px;
+
+            padding: 12px;
+
+            color: #9c392d;
+
+            background: #fff1ee;
+
+            border: 1px solid #e6b4ad;
+
+            border-radius: 4px;
+
+        }
+
+        .editar-erros p {
+
+            margin: 3px 0;
+
+        }
+
+        @media (max-width: 600px) {
+
+            .pagina-editar {
+
+                padding: 20px 16px;
+
+            }
+
+            .formulario-editar {
+
+                max-width: 100%;
+
+            }
+
+            .editar-botoes {
+
+                flex-wrap: wrap;
+
+            }
+
+        }
+
+    }
+
+}

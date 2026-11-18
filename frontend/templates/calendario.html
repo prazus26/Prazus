@@ -1,9 +1,44 @@
 {% extends 'baseUsuarioDashboard.html' %}
-
 {% block content_usuario %}
 <div class="calendario">
+    <div class="cal-controles">
+        <div class="cal-navegacao">
+            <button type="button" id="cal-hoje" class="cal-hoje">Hoje</button>
+            <button type="button" id="cal-anterior" class="cal-seta" aria-label="Período anterior">‹</button>
+            <button type="button" id="cal-proximo" class="cal-seta" aria-label="Próximo período">›</button>
+            <details class="cal-seletor" id="cal-seletor">
+                <summary>
+                    <span id="cal-titulo">Calendário</span>
+                    <span class="cal-chevron" aria-hidden="true"></span>
+                </summary>
+                <form id="cal-form-periodo" class="cal-periodo">
+                    <label for="cal-mes">Mês</label>
+                    <select id="cal-mes">
+                        <option value="0">Janeiro</option>
+                        <option value="1">Fevereiro</option>
+                        <option value="2">Março</option>
+                        <option value="3">Abril</option>
+                        <option value="4">Maio</option>
+                        <option value="5">Junho</option>
+                        <option value="6">Julho</option>
+                        <option value="7">Agosto</option>
+                        <option value="8">Setembro</option>
+                        <option value="9">Outubro</option>
+                        <option value="10">Novembro</option>
+                        <option value="11">Dezembro</option>
+                    </select>
+                    <label for="cal-ano">Ano</label>
+                    <input id="cal-ano" type="number" min="1000" max="9999" step="1" required>
+                    <button type="submit">Ir para o período</button>
+                </form>
+            </details>
+        </div>
+        <div class="cal-visoes" aria-label="Visualização do calendário">
+            <button type="button" data-cal-view="dayGridMonth">Mês</button>
+            <button type="button" data-cal-view="timeGridWeek">Semana</button>
+            <button type="button" data-cal-view="timeGridDay">Dia</button>
+        </div>
+    </div>
     <div id="calendar"></div>
-
-
 </div>
 {% endblock %}

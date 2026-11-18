@@ -1,0 +1,46 @@
+/* Acabamento dos controles existentes: sair e concluir publicação. */
+.app-layout .sidebar .sidebar-nav>form {
+    margin-top: 8px;
+}
+
+.app-layout .sidebar .sidebar-nav>form>button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    padding: 6px 16px;
+    border: 1px solid var(--dourado);
+    border-radius: 3px;
+    background: var(--dourado);
+    color: var(--branco);
+    font: 400 14px "Marcellus", serif;
+    cursor: pointer;
+    align-self: center;
+    text-align: center;
+    width: 100%;
+}
+
+.publicados-pagina .publicacao-acoes>form>button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 26px;
+    padding: 4px 10px;
+    border: 1px solid #9f8158;
+    border-radius: 3px;
+    background: #9f8158;
+    color: #fff;
+    font: 400 12px "Marcellus", serif;
+    cursor: pointer;
+}
+
+.app-layout .sidebar .sidebar-nav>form>button:hover,
+.publicados-pagina .publicacao-acoes>form>button:hover {
+    background: #856a46;
+}
+
+.app-layout .sidebar .sidebar-nav>form>button:focus-visible,
+.publicados-pagina .publicacao-acoes>form>button:focus-visible {
+    outline: 2px solid #6c5e43;
+    outline-offset: 3px;
+}

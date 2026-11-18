@@ -1,0 +1,60 @@
+.app-layout {
+    .revisao-prazo {
+        max-width: 600px;
+        padding: 22px;
+        margin: 25px 0;
+        background: #faf7f2;
+        border: 1px solid #d9cbb8;
+        border-radius: 5px;
+    }
+
+    .revisao-prazo h2 {
+        font-size: 21px;
+        font-weight: 400;
+        margin-bottom: 12px;
+
+    }
+
+    .revisao-prazo p {
+        margin-bottom: 15px;
+        line-height: 1.5;
+    }
+
+    .revisao-prazo blockquote {
+        margin: 0 0 20px;
+        padding: 12px;
+        border-left: 3px solid #a48762;
+        background: #f1e9df;
+    }
+
+    .revisao-prazo form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .revisao-prazo input,
+    .revisao-prazo select {
+        max-width: 300px;
+        padding: 9px;
+        border: 1px solid #c9b9a2;
+        background: white;
+        border-radius: 3px;
+    }
+
+    .revisao-prazo button {
+        align-self: flex-start;
+        margin-top: 12px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 3px;
+        color: white;
+        background: #a48762;
+        cursor: pointer;
+    }
+
+    .prazo-confirmado {
+        color: #486d3d;
+    }
+
+}

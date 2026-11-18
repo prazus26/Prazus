@@ -1,115 +1,63 @@
-
 {% extends 'baseUsuarioDashboard.html' %}
 
 {% block content_usuario %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/notificacoes_uniformes.css') }}">
 
-<div class="notificacoes">
-
+<div class="notificacoes notificacoes-uniformes">
     <div class="notificacoes-topo">
         <h1>NOTIFICAÇÕES</h1>
-
-        {% if total_notificacoes > 0 %}
-            <span class="notificacoes-contador">
-                {{ total_notificacoes }}
-                não visualizada{% if total_notificacoes != 1 %}s{% endif %}
-            </span>
-        {% endif %}
     </div>
 
     <div class="notificacoes-lista">
+        {% for notificacao in notificacoes %}
+        <article class="notificacao">
+            <div class="notificacao-conteudo">
+                <div class="notificacao-cabecalho">
+                    <h3>{{ notificacao.titulo }}</h3>
+                </div>
 
-        {% if notificacoes %}
+                <!-- {% if notificacao.historica %}
+                <p class="notificacao-historico" role="note">
+                    <strong>Alerta histórico</strong> — a data, o estado
+                    do evento ou o dia de referência mudou.
+                    Preservado para consulta; não entra no contador
+                    de alertas atuais.
+                </p>
+                {% endif %} -->
 
-            {% for notificacao in notificacoes %}
+                <p class="notificacao-mensagem">
+                    {{ notificacao.mensagem }}
+                </p>
 
-                <article class="notificacao
-                    {% if notificacao.visualizada or notificacao.historica %}
-                        visualizada
-                    {% else %}
-                        nao-visualizada
-                    {% endif %}">
+                <small class="notificacao-data">
+                    {{ notificacao.data_notificacao.strftime('%d/%m/%Y às %H:%M') }}
+                </small>
 
-                    <div class="notificacao-conteudo">
+                <div class="notificacao-acoes">
+                    {% if notificacao.manual_id %}
+                    <a href="{{ url_for('prazo_manual.formulario', prazo_id=notificacao.manual_id) }}">
+                        Abrir prazo manual
+                    </a>
 
-                        <div class="notificacao-cabecalho">
+                    {% elif notificacao.publicacao_id %}
+                    <a href="{{ url_for('calendario.detalhes_publicacao', publicacao_id=notificacao.publicacao_id) }}">
+                        Abrir publicação
+                    </a>
 
-                            <h3>{{ notificacao.titulo }}</h3>
-
-                            {% if not notificacao.visualizada and not notificacao.historica %}
-                                <span class="notificacao-indicador"
-                                      title="Não visualizada">
-                                </span>
-                            {% endif %}
-
-                        </div>
-
-                        {% if notificacao.historica %}
-                        <p role="note"><strong>Alerta histórico</strong> — a data, o estado do evento ou o dia de referência mudou.
-                        A mensagem abaixo foi preservada para consulta e não entra no contador de alertas atuais.</p>
-                        {% endif %}
-                        <p class="notificacao-mensagem">
-                            {{ notificacao.mensagem }}
-                        </p>
-
-                        <small class="notificacao-data">
-                            {{ notificacao.data_notificacao.strftime('%d/%m/%Y às %H:%M') }}
-                        </small>
-
-                        <div class="notificacao-acoes">
-
-                            {% if notificacao.publicacao_id %}
-<a href="{{ url_for('calendario.detalhes_publicacao', publicacao_id=notificacao.publicacao_id) }}">Abrir publicação</a>
-{% elif notificacao.prazo_id %}
-
-                                <a class="notificacao-detalhes"
-                                   href="{{ url_for('calendario.detalhes_prazo', prazo_id=notificacao.prazo_id) }}">
-                                    Ver detalhes
-                                </a>
-
-                            {% endif %}
-
-                            {% if not notificacao.visualizada %}
-
-                                <form method="POST"
-                                      action="{{ url_for('notificacoes.visualizar', notificacao_id=notificacao.id) }}">
-
-                                    <input type="hidden"
-                                           name="csrf_token"
-                                           value="{{ csrf_token }}">
-
-                                    <button type="submit"
-                                            class="notificacao-marcar">
-                                        Marcar como visualizada
-                                    </button>
-
-                                </form>
-
-                            {% else %}
-
-                                <span class="notificacao-lida">
-                                    ✓ Visualizada
-                                </span>
-
-                            {% endif %}
-
-                        </div>
-
-                    </div>
-
-                </article>
-
-            {% endfor %}
+                    {% elif notificacao.prazo_id %}
+                    <a href="{{ url_for('calendario.detalhes_prazo', prazo_id=notificacao.prazo_id) }}">
+                        Ver detalhes
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </article>
 
         {% else %}
-
-            <div class="notificacoes-vazio">
-                <p>Você não possui notificações.</p>
-            </div>
-
-        {% endif %}
-
+        <div class="notificacoes-vazio">
+            <p>Você não possui notificações.</p>
+        </div>
+        {% endfor %}
     </div>
-
 </div>
-
 {% endblock %}
