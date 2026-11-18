@@ -1,148 +1,777 @@
+
 {% extends 'baseUsuarioDashboard.html' %}
 
 {% block content_usuario %}
-<h1>ESCALA DE CORES</h1>
 
-<p>
-    Escolha as cores que mostram a urgência de cada prazo,
-    de acordo com os dias que faltam para o vencimento.
-</p>
+<style>
+    .escala-container {
+        padding: 20px 24px;
+        color: #302b27;
+        font-family: 'Marcellus', serif;
+    }
 
-<form method="post" id="form-cores" class="cores-layout">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    .escala-container h2 {
+        font-size: 29px;
+        margin: 0 0 8px;
+        color: #171411;
+    }
 
-    <section>
-        <h2>Faixas de urgência</h2>
+    .escala-descricao {
+        color: #817365;
+        font-size: 13px;
+        margin-bottom: 28px;
+        line-height: 1.6;
+    }
 
-        {% set paleta = [
-            '#FF8C69',
-            '#FCBF69',
-            '#F3E27A',
-            '#ADF3A0',
-            '#A9DCF2'
-        ] %}
+    .escala-conteudo {
+        display: grid;
+        grid-template-columns: minmax(300px, 1.2fr) minmax(260px, .8fr);
+        gap: 35px;
+        max-width: 1100px;
+    }
 
-        {% set faixas = [
-            ('cor_vencido', 'Vencido ou hoje', cores.vencido),
-            ('cor_urgente', 'Urgente', cores.cor_urgente),
-            ('cor_atencao', 'Atenção', cores.cor_atencao),
-            ('cor_tranquilo', 'Tranquilo', cores.tranquilo)
-        ] %}
+    .escala-subtitulo {
+        font-size: 16px;
+        margin: 0 0 15px;
+        font-weight: normal;
+    }
 
-        {% for campo, nome, valor in faixas %}
-        <div class="faixa-cor">
-            <div>
-                <strong>{{ nome }}</strong>
+    .faixa {
+        display: grid;
+        grid-template-columns: minmax(100px, 1fr) auto auto;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 0;
+        border-bottom: 1px solid #e8e1d9;
+    }
 
-                {% if campo == 'cor_urgente' %}
-                <label for="limite-urgente">
+    .faixa-nome {
+        font-size: 15px;
+    }
+
+    .faixa-descricao {
+        display: block;
+        color: #887b6c;
+        font-size: 11px;
+        margin-top: 3px;
+    }
+
+    .faixa-config {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    .faixa-config input {
+        width: 43px;
+        padding: 7px 5px;
+        border: 1px solid #b9a58e;
+        border-radius: 4px;
+        text-align: center;
+        font-size: 13px;
+    }
+
+    .cores-opcoes {
+        display: flex;
+        gap: 7px;
+        align-items: center;
+    }
+
+    .cor-opcao {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 1px solid #b7a99a;
+        flex-shrink: 0;
+        margin: 0;
+    }
+
+    .cor-opcao:checked {
+        outline: 2px solid #4c4137;
+        outline-offset: 3px;
+    }
+
+    .cor-livre {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+    }
+
+    .cor-livre input {
+        width: 25px;
+        height: 25px;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+    }
+
+    .previa-cartoes {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+    }
+
+    .cartao-previa {
+        padding: 12px 13px;
+        border-radius: 5px;
+        color: #302b27;
+        transition: background-color .2s;
+    }
+
+    .cartao-cabecalho {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 5px;
+        font-size: 14px;
+    }
+
+    .cartao-previa p {
+        margin: 2px 0;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .cartao-dias {
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .escala-observacao {
+        color: #887b6c;
+        font-size: 11px;
+        margin-top: 12px;
+        line-height: 1.5;
+    }
+
+    .escala-botoes {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 24px;
+    }
+
+    .btn-escala {
+        border: none;
+        padding: 10px 17px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: 'Marcellus', serif;
+        font-size: 12px;
+        transition: opacity .2s;
+    }
+
+    .btn-escala:hover {
+        opacity: .85;
+    }
+
+    .btn-salvar {
+        background: #947447;
+        color: white;
+    }
+
+    .btn-cancelar {
+        background: #5b4931;
+        color: white;
+    }
+
+    .btn-restaurar {
+        background: transparent;
+        color: #826747;
+        text-decoration: underline;
+        padding: 8px;
+    }
+
+    .mensagem-escala {
+        font-size: 12px;
+        margin-top: 12px;
+        color: #58734e;
+    }
+
+    @media(max-width: 950px) {
+        .escala-conteudo {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media(max-width: 600px) {
+        .escala-container {
+            padding: 15px 10px;
+        }
+
+        .faixa {
+            grid-template-columns: 1fr;
+            gap: 9px;
+        }
+
+        .faixa-config {
+            flex-wrap: wrap;
+        }
+
+        .cores-opcoes {
+            padding: 5px 0;
+        }
+    }
+</style>
+
+
+<div class="escala-container">
+
+    <h2>Escala De Cores</h2>
+
+    <p class="escala-descricao">
+        Escolha as cores que mostram a urgência de cada prazo,
+        de acordo com os dias que faltam para o vencimento.
+    </p>
+
+    <div class="escala-conteudo">
+
+        <!-- CONFIGURAÇÃO DAS CORES -->
+
+        <section>
+
+            <h3 class="escala-subtitulo">Faixas de urgência</h3>
+
+            <!-- VENCIDO -->
+
+            <div class="faixa">
+
+                <div>
+                    <span class="faixa-nome">Vencido ou hoje</span>
+                    <span class="faixa-descricao">
+                        Vence hoje ou já passou
+                    </span>
+                </div>
+
+                <span class="faixa-config">0 dias ou menos</span>
+
+                <div class="cores-opcoes">
+
+                    <input type="radio"
+                        class="cor-opcao"
+                        name="vencido"
+                        value="#ff896b"
+                        style="background:#ff896b"
+                        checked>
+
+                </div>
+
+            </div>
+
+
+            <!-- URGENTE -->
+
+            <div class="faixa">
+
+                <div>
+                    <span class="faixa-nome">Urgente</span>
+                    <span class="faixa-descricao">
+                        Vence em poucos dias
+                    </span>
+                </div>
+
+                <div class="faixa-config">
                     Até
-                    <input
-                        id="limite-urgente"
-                        name="limite_urgente"
-                        type="number"
-                        min="0"
-                        max="364"
-                        value="{{ cores.urgente }}"
-                        required>
-                    dias
-                </label>
-
-                {% elif campo == 'cor_atencao' %}
-                <label for="limite-atencao">
-                    Até
-                    <input
-                        id="limite-atencao"
-                        name="limite_atencao"
-                        type="number"
+                    <input type="number"
+                        id="diasUrgente"
                         min="1"
                         max="365"
-                        value="{{ cores.atencao }}"
-                        required>
+                        value="3">
                     dias
-                </label>
+                </div>
 
-                {% elif campo == 'cor_tranquilo' %}
-                <small>Acima do limite de atenção</small>
+                <div class="cores-opcoes">
 
-                {% else %}
-                <small>0 dias ou menos</small>
-                {% endif %}
+                    <input type="radio" class="cor-opcao"
+                        name="urgente" value="#ff896b"
+                        style="background:#ff896b">
+
+                    <input type="radio" class="cor-opcao"
+                        name="urgente" value="#ffbd66"
+                        style="background:#ffbd66" checked>
+
+                    <input type="radio" class="cor-opcao"
+                        name="urgente" value="#f5df79"
+                        style="background:#f5df79">
+
+                    <input type="radio" class="cor-opcao"
+                        name="urgente" value="#a8ec9c"
+                        style="background:#a8ec9c">
+
+                    <input type="radio" class="cor-opcao"
+                        name="urgente" value="#a2d5ed"
+                        style="background:#a2d5ed">
+
+                </div>
+
             </div>
 
-            <div class="paleta">
-                {% for cor in paleta %}
-                <button
-                    type="button"
-                    class="amostra-cor"
-                    style="background: {{ cor }};"
-                    data-campo="{{ campo }}"
-                    data-cor="{{ cor }}"
-                    aria-label="{{ nome }}: {{ cor }}"
-                    aria-pressed="false">
+
+            <!-- ATENÇÃO -->
+
+            <div class="faixa">
+
+                <div>
+                    <span class="faixa-nome">Atenção</span>
+                    <span class="faixa-descricao">
+                        Vence nos próximos dias
+                    </span>
+                </div>
+
+                <div class="faixa-config">
+                    Até
+                    <input type="number"
+                        id="diasAtencao"
+                        min="2"
+                        max="365"
+                        value="7">
+                    dias
+                </div>
+
+                <div class="cores-opcoes">
+
+                    <input type="radio" class="cor-opcao"
+                        name="atencao" value="#ff896b"
+                        style="background:#ff896b">
+
+                    <input type="radio" class="cor-opcao"
+                        name="atencao" value="#ffbd66"
+                        style="background:#ffbd66">
+
+                    <input type="radio" class="cor-opcao"
+                        name="atencao" value="#f5df79"
+                        style="background:#f5df79" checked>
+
+                    <input type="radio" class="cor-opcao"
+                        name="atencao" value="#a8ec9c"
+                        style="background:#a8ec9c">
+
+                    <input type="radio" class="cor-opcao"
+                        name="atencao" value="#a2d5ed"
+                        style="background:#a2d5ed">
+
+                </div>
+
+            </div>
+
+
+            <!-- TRANQUILO -->
+
+            <div class="faixa">
+
+                <div>
+                    <span class="faixa-nome">Tranquilo</span>
+                    <span class="faixa-descricao">
+                        Ainda há bastante tempo
+                    </span>
+                </div>
+
+                <span class="faixa-config">
+                    Mais de <span id="limiteTranquilo">7</span> dias
+                </span>
+
+                <div class="cores-opcoes">
+
+                    <input type="radio" class="cor-opcao"
+                        name="tranquilo" value="#ff896b"
+                        style="background:#ff896b">
+
+                    <input type="radio" class="cor-opcao"
+                        name="tranquilo" value="#ffbd66"
+                        style="background:#ffbd66">
+
+                    <input type="radio" class="cor-opcao"
+                        name="tranquilo" value="#f5df79"
+                        style="background:#f5df79">
+
+                    <input type="radio" class="cor-opcao"
+                        name="tranquilo" value="#a8ec9c"
+                        style="background:#a8ec9c" checked>
+
+                    <input type="radio" class="cor-opcao"
+                        name="tranquilo" value="#a2d5ed"
+                        style="background:#a2d5ed">
+
+                </div>
+
+            </div>
+
+
+            <!-- SEM DATA -->
+
+            <div class="faixa">
+
+                <div>
+                    <span class="faixa-nome">Sem data</span>
+                    <span class="faixa-descricao">
+                        Prazo sem vencimento
+                    </span>
+                </div>
+
+                <span class="cor-livre">
+
+                    <input type="color"
+                        id="corSemData"
+                        value="#d6d3ce">
+
+                    Cinza (padrão)
+
+                </span>
+
+            </div>
+
+
+            <!-- BOTÕES -->
+
+            <div class="escala-botoes">
+
+                <button type="button"
+                    class="btn-escala btn-salvar"
+                    id="salvarEscala">
+
+                    SALVAR ALTERAÇÕES
+
                 </button>
-                {% endfor %}
 
-                <input
-                    type="color"
-                    name="{{ campo }}"
-                    value="{{ valor }}"
-                    aria-label="Cor de {{ nome }}">
+                <button type="button"
+                    class="btn-escala btn-cancelar"
+                    id="cancelarEscala">
+
+                    CANCELAR
+
+                </button>
+
+                <button type="button"
+                    class="btn-escala btn-restaurar"
+                    id="restaurarEscala">
+
+                    Restaurar cores padrão
+
+                </button>
+
             </div>
-        </div>
-        {% endfor %}
 
-        <div class="faixa-cor">
-            <div>
-                <strong>Sem data</strong>
-                <small>Prazo sem vencimento conhecido</small>
+            <p class="mensagem-escala"
+                id="mensagemEscala"
+                aria-live="polite"></p>
+
+        </section>
+
+
+        <!-- PRÉVIA DOS CARTÕES -->
+
+        <section>
+
+            <h3 class="escala-subtitulo">Prévia</h3>
+
+            <p class="escala-observacao" style="margin-top:-10px">
+                Assim os cartões aparecem na agenda.
+            </p>
+
+            <div class="previa-cartoes" id="previaCartoes">
+
+
+                <div class="cartao-previa" data-faixa="vencido">
+
+                    <div class="cartao-cabecalho">
+                        <span>Mauro Banana</span>
+                        <span class="cartao-dias">Hoje</span>
+                    </div>
+
+                    <p>Processo 123456789</p>
+                    <p>Contrarrazões de Embargos de Declaração</p>
+
+                </div>
+
+
+                <div class="cartao-previa" data-faixa="urgente">
+
+                    <div class="cartao-cabecalho">
+                        <span>Cleidiane da Costa</span>
+                        <span class="cartao-dias">3 dias</span>
+                    </div>
+
+                    <p>Processo 123456789</p>
+                    <p>Recurso Inominado - JEF</p>
+
+                </div>
+
+
+                <div class="cartao-previa" data-faixa="atencao">
+
+                    <div class="cartao-cabecalho">
+                        <span>Maya Pereira</span>
+                        <span class="cartao-dias">6 dias</span>
+                    </div>
+
+                    <p>Processo 123456789</p>
+                    <p>Contrarrazões de Embargos de Declaração</p>
+
+                </div>
+
+
+                <div class="cartao-previa" data-faixa="tranquilo">
+
+                    <div class="cartao-cabecalho">
+                        <span>Don Lothario</span>
+                        <span class="cartao-dias">12 dias</span>
+                    </div>
+
+                    <p>Processo 123456789</p>
+                    <p>Recurso Especial / Extraordinário</p>
+
+                </div>
+
             </div>
 
-            <span
-                class="amostra-cor"
-                style="background: #D9D6D0;"
-                aria-hidden="true">
-            </span>
+            <p class="escala-observacao">
+                Prazos com baixa ficam cinza e riscados,
+                fora da escala de urgência.
+            </p>
 
-            <small>Cinza fixo</small>
-        </div>
+        </section>
 
-        <div class="acoes-cores">
-            <button type="submit">
-                SALVAR ALTERAÇÕES
-            </button>
+    </div>
 
-            <a href="{{ url_for('calendario.calendario') }}">
-                CANCELAR
-            </a>
+</div>
 
-            <button type="button" id="restaurar-cores">
-                RESTAURAR CORES PADRÃO
-            </button>
-        </div>
 
-        <p role="status" id="erro-cores" aria-live="polite"></p>
-    </section>
+<!-- JAVASCRIPT -->
 
-    <aside class="cores-previa">
-        <h2>Prévia</h2>
-        <p>Exemplos ilustrativos de cartões da agenda.</p>
+<script>
 
-        {% for dias in [0, 3, 6, 12] %}
-        <article class="prazo-card" data-dias="{{ dias }}">
-            <strong>Cliente exemplo</strong>
-            <span>0000000-00.2026.0.00.0000</span>
-            <span>{{ dias }} dias</span>
-            <span>Compromisso exemplo</span>
-        </article>
-        {% endfor %}
+document.addEventListener("DOMContentLoaded", function () {
 
-        <p>
-            Itens sem data aparecem em cinza na listagem,
-            sem vencimento inventado.
-        </p>
-    </aside>
-</form>
+    const chave = "prazus_escala_cores";
 
-<script src="{{ url_for('static', filename='javascript/cores.js') }}"></script>
+    const padrao = {
+        diasUrgente: 3,
+        diasAtencao: 7,
+        vencido: "#ff896b",
+        urgente: "#ffbd66",
+        atencao: "#f5df79",
+        tranquilo: "#a8ec9c",
+        semData: "#d6d3ce"
+    };
+
+    const diasUrgente = document.getElementById("diasUrgente");
+    const diasAtencao = document.getElementById("diasAtencao");
+    const corSemData = document.getElementById("corSemData");
+
+    const mensagem = document.getElementById("mensagemEscala");
+
+
+    function obterConfiguracao() {
+
+        const config = {
+            diasUrgente: Number(diasUrgente.value),
+            diasAtencao: Number(diasAtencao.value),
+            semData: corSemData.value
+        };
+
+        ["vencido", "urgente", "atencao", "tranquilo"].forEach(nome => {
+
+            const selecionado = document.querySelector(
+                `input[name="${nome}"]:checked`
+            );
+
+            config[nome] = selecionado
+                ? selecionado.value
+                : padrao[nome];
+
+        });
+
+        return config;
+
+    }
+
+
+    function validar() {
+
+        const urgente = Number(diasUrgente.value);
+        const atencao = Number(diasAtencao.value);
+
+        if (
+            !Number.isInteger(urgente) ||
+            !Number.isInteger(atencao) ||
+            urgente < 1 ||
+            urgente >= atencao ||
+            atencao > 365
+        ) {
+
+            mostrarMensagem(
+                "O prazo urgente deve ser menor que o prazo de atenção. Utilize valores entre 1 e 365.",
+                true
+            );
+
+            return false;
+
+        }
+
+        return true;
+
+    }
+
+
+    function aplicarConfiguracao(config) {
+
+        diasUrgente.value = config.diasUrgente;
+        diasAtencao.value = config.diasAtencao;
+        corSemData.value = config.semData;
+
+        ["vencido", "urgente", "atencao", "tranquilo"].forEach(nome => {
+
+            const radio = document.querySelector(
+                `input[name="${nome}"][value="${config[nome]}"]`
+            );
+
+            if (radio) {
+                radio.checked = true;
+            }
+
+        });
+
+        atualizarPrevia();
+
+    }
+
+
+    function atualizarPrevia() {
+
+        const config = obterConfiguracao();
+
+        document.getElementById("limiteTranquilo").textContent =
+            config.diasAtencao;
+
+        document.querySelectorAll(".cartao-previa").forEach(cartao => {
+
+            const faixa = cartao.dataset.faixa;
+
+            cartao.style.backgroundColor = config[faixa];
+
+        });
+
+    }
+
+
+    function mostrarMensagem(texto, erro = false) {
+
+        mensagem.textContent = texto;
+
+        mensagem.style.color = erro
+            ? "#b33b32"
+            : "#58734e";
+
+    }
+
+
+    function salvar() {
+
+        if (!validar()) return;
+
+        const config = obterConfiguracao();
+
+        try {
+
+            localStorage.setItem(chave, JSON.stringify(config));
+
+            aplicarConfiguracao(config);
+
+            mostrarMensagem("Alterações salvas com sucesso!");
+
+        } catch (erro) {
+
+            mostrarMensagem(
+                "Não foi possível salvar as alterações.",
+                true
+            );
+
+        }
+
+    }
+
+
+    function cancelar() {
+
+        try {
+
+            const salvo = localStorage.getItem(chave);
+
+            aplicarConfiguracao(
+                salvo
+                    ? {...padrao, ...JSON.parse(salvo)}
+                    : {...padrao}
+            );
+
+            mostrarMensagem("Alterações canceladas.");
+
+        } catch (erro) {
+
+            aplicarConfiguracao({...padrao});
+
+            mostrarMensagem("Não foi possível recuperar as configurações.", true);
+
+        }
+
+    }
+
+
+    function restaurar() {
+
+        aplicarConfiguracao({...padrao});
+
+        salvar();
+
+    }
+
+
+    document.getElementById("salvarEscala")
+        .addEventListener("click", salvar);
+
+    document.getElementById("cancelarEscala")
+        .addEventListener("click", cancelar);
+
+    document.getElementById("restaurarEscala")
+        .addEventListener("click", restaurar);
+
+
+    document.querySelectorAll(
+        '.cor-opcao, #corSemData, #diasUrgente, #diasAtencao'
+    ).forEach(campo => {
+
+        campo.addEventListener("input", atualizarPrevia);
+        campo.addEventListener("change", atualizarPrevia);
+
+    });
+
+
+    // CARREGAR CONFIGURAÇÕES SALVAS
+
+    try {
+
+        const salvo = localStorage.getItem(chave);
+
+        aplicarConfiguracao(
+            salvo
+                ? {...padrao, ...JSON.parse(salvo)}
+                : {...padrao}
+        );
+
+    } catch (erro) {
+
+        aplicarConfiguracao({...padrao});
+
+    }
+
+});
+
+</script>
+
 {% endblock %}
