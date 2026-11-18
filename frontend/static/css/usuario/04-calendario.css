@@ -3,6 +3,7 @@
         min-width: 0;
         padding: 10px;
         margin-bottom: 30px;
+
         #calendar {
             width: 100%;
             background: #f8f7f5;
@@ -229,11 +230,21 @@
         }
 
         .prazo-card {
+            display: block;
+            box-sizing: border-box;
             min-width: 0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
             color: #29231d;
             font-family: "Marcellus", Georgia, serif;
             font-size: 16px;
             line-height: 1.25;
+        }
+
+        .prazo-conteudo {
+            display: flow-root;
+            width: 100%;
         }
 
         .prazo-resumo {

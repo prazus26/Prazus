@@ -1,211 +1,334 @@
 {% extends 'baseUsuarioDashboard.html' %}
 {% block content_usuario %}
-<style>.cabecalho{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:24px}.acoes{display:flex;gap:16px}.secao{padding:20px 0;border-bottom:1px solid #ded3c2}.informacoes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.campo span{display:block;color:#777;font-size:13px}.campo strong{overflow-wrap:anywhere}.documento{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}@media(max-width:700px){.informacoes{grid-template-columns:1fr}}@media print{header,.sidebar,.nao-imprimir{display:none!important}html,body,.app-layout,.main-content{height:auto!important;overflow:visible!important}.main-content{padding:0!important}.secao{break-inside:avoid}}</style>
-        <div class="cabecalho nao-imprimir">
-            <h1>Detalhes do acompanhamento</h1>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/prazo_detalhes.css') }}">
 
-            <div class="acoes">
-                <button class="botao imprimir" onclick="window.print()">
-                    Imprimir
-                </button>
+<div class="acompanhamento-pagina">
+    <div class="detalhes-cabecalho nao-imprimir">
+        <h1>Detalhes do acompanhamento</h1>
 
-                {% if prazo.prazo_id %}
-                <a href="{{ url_for('calendario.editar_prazo', prazo_id=prazo.prazo_id) }}">
-                    Editar informações
-                </a>
-                {% else %}
-                <a class="botao editar" href="{{ url_for('calendario.editar_publicacao', publicacao_id=prazo.publicacao_id) }}">Editar informações</a>
-                {% endif %}
-            </div>
-            {% if eventos_automaticos %}
-            <p role="note">Os eventos abaixo entram automaticamente na agenda. A edição é opcional.
-            Consulte em cada evento a origem da data e a cobertura do calendário.</p>
-            {% elif prazo.ajuste_historico %}
-            <p role="note">Ajuste histórico preservado: o vencimento atual difere do original.
-            Isso não atribui autoria à alteração nem valida juridicamente a data. A edição é opcional.</p>
-            {% elif prazo.prazo_id and prazo.revisao_estado != "confirmada" and prazo.personalizado_manualmente != True %}
-            <p role="note">Este registro veio do fluxo antigo.
-            {% if prazo.origem_prazo == 'estimativa_prazus' %}A estimativa histórica não é um vencimento judicial.
-            {% else %}A origem e a regra desta data histórica ainda precisam ser verificadas; ela não equivale a um evento da análise automática atual.{% endif %}
-            A edição é opcional.</p>
-            {% endif %}
-            {% if prazo.acompanhamento_estado == "dispensada" %}
-            <p role="status">Revisão da publicação encerrada. Os eventos existentes e o documento DJEN permanecem preservados.</p>
-            {% elif prazo.acompanhamento_estado == "pendente" and not prazo.ajuste_historico
-              and prazo.revisao_estado != "confirmada" and prazo.personalizado_manualmente != True %}
-            <form method="post" action="{{ url_for('calendario.dispensar_publicacao', publicacao_id=prazo.publicacao_id) }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                <button type="submit" class="botao imprimir">Marcar publicação como revisada (opcional)</button>
-                <p>Essa ação não cancela compromissos. Para concluir ou cancelar um evento, use sua edição opcional abaixo.</p>
-            </form>
+        <div class="detalhes-acoes">
+            <a href="{{ url_for('publicadosHoje.imprimir_uma_publicacao', publicacao_id=prazo.publicacao_id) }}"
+               target="_blank" rel="noopener noreferrer">
+                Imprimir publicação
+            </a>
+
+            {% if prazo.prazo_id %}
+            <a href="{{ url_for('calendario.editar_prazo', prazo_id=prazo.prazo_id) }}">
+                Editar informações
+            </a>
+            {% else %}
+            <a href="{{ url_for('calendario.editar_publicacao', publicacao_id=prazo.publicacao_id) }}">
+                Editar informações
+            </a>
             {% endif %}
         </div>
 
-        <section class="secao">
-            <h2>Informações do processo</h2>
-
-            <div class="informacoes">
-                <div class="campo">
-                    <span>Cliente</span>
-                    <strong>{{ prazo.cliente or "Não informado" }}</strong>
-                </div>
-
-                <div class="campo">
-                    <span>Número do processo</span>
-                    <strong>{{ prazo.numero_processo }}</strong>
-                </div>
-
-                <div class="campo">
-                    <span>Tribunal</span>
-                    <strong>{{ prazo.tribunal or "Não informado" }}</strong>
-                </div>
-
-                <div class="campo">
-                    <span>Vara</span>
-                    <strong>{{ prazo.unidade_judicial or prazo.vara or "Não informada" }}</strong>
-                </div>
-
-                <div class="campo">
-                    <span>Classe</span>
-                    <strong>{{ prazo.classe or "Não informada" }}</strong>
-                </div>
-
-                <div class="campo">
-                    <span>Tipo de documento</span>
-                    <strong>{{ prazo.tipo_documento or "Não informado" }}</strong>
-                </div>
-
-                <div class="campo">
-                    <span>Assunto</span>
-                    <strong>{{ prazo.assunto or "Não informado" }}</strong>
-                </div>
-
-                <div class="campo">
-                    <span>Data de disponibilização</span>
-                    <strong>{{ prazo.data_disponibilizacao or "Não informada" }}</strong>
-                </div>
-
-                <div class="campo">
-                    <span>Data de publicação</span>
-                    <strong>{{ prazo.data_publicacao or "Não informada" }}</strong>
-                </div>
-            </div>
-        </section>
-
         {% if eventos_automaticos %}
-        <section class="secao">
-            <h2>Eventos identificados automaticamente</h2>
-            <p>Extraídos do DJEN e das análises já armazenadas. Não exigem confirmação manual para aparecer na agenda.</p>
-            <div class="informacoes">
-            {% for evento in eventos_automaticos %}
-                <div class="campo" style="padding:12px;border:1px solid #ded3c2;border-radius:7px;">
-                    {% if evento.extendedProps.tipo == 'pericia' %}
-                        <span>Perícia agendada</span>
-                        <strong>{{ evento.start[8:10] }}/{{ evento.start[5:7] }}/{{ evento.start[:4] }}{% if not evento.allDay %} às {{ evento.start[11:16] }}{% endif %}</strong>
-                    {% elif evento.extendedProps.tipo == 'prazo_provisorio' %}
-                        <span>Data-limite calculada automaticamente — provisória</span>
-                        <strong>{{ evento.start[8:10] }}/{{ evento.start[5:7] }}/{{ evento.start[:4] }}</strong>
-                        <p>{{ evento.extendedProps.nome_prazo }}</p>
-                    {% else %}
-                        <span>Compromisso identificado</span>
-                        <strong>{{ evento.start }}</strong>
-                        <p>{{ evento.extendedProps.nome_prazo }}</p>
-                    {% endif %}
-                    <p>Estado: {{ evento.extendedProps.status }}.</p>
-                    {% if evento.extendedProps.aviso %}<p>{{ evento.extendedProps.aviso }}</p>{% endif %}
-                    {% if evento.extendedProps.evento_id %}
-                    <details class="nao-imprimir"><summary>Editar este evento (opcional)</summary>
-                    <form method="post" action="{{ url_for('calendario.editar_evento_automatico', evento_id=evento.extendedProps.evento_id) }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                        <label>Compromisso <input name="nome" maxlength="150" value="{{ evento.extendedProps.nome_prazo }}"></label>
-                        <label>{% if evento.allDay %}Data{% else %}Data e horário{% endif %}
-                        <input name="inicio" type="{{ 'date' if evento.allDay else 'datetime-local' }}"
-                               step="1" value="{{ evento.start }}"></label>
-                        <label>Estado <select name="status">{% for estado in ['pendente','concluido','cancelado'] %}<option {% if estado == evento.extendedProps.status %}selected{% endif %}>{{ estado }}</option>{% endfor %}</select></label>
-                        <label>Alerta, dias antes <input type="number" min="0" max="3650" name="alerta" value="{{ evento.extendedProps.alerta_proximidade if evento.extendedProps.alerta_proximidade is not none else '' }}"></label>
-                        <p>Deixe nome/data vazios para restaurar o valor automático.</p>
-                        <button>Salvar ajuste</button>
-                    </form></details>
-                    {% endif %}
-                </div>
-            {% endfor %}
-            </div>
-        </section>
+        <p role="note">
+            Os eventos abaixo entram automaticamente na agenda. A edição é opcional.
+            Consulte em cada evento a origem da data e a cobertura do calendário.
+        </p>
+        {% elif prazo.ajuste_historico %}
+        <p role="note">
+            Ajuste histórico preservado: o vencimento atual difere do original.
+            Isso não atribui autoria à alteração nem valida juridicamente a data.
+            A edição é opcional.
+        </p>
+        {% elif prazo.prazo_id and prazo.revisao_estado != "confirmada" and prazo.personalizado_manualmente != True %}
+        <p role="note">
+            Este registro veio do fluxo antigo.
+            {% if prazo.origem_prazo == 'estimativa_prazus' %}
+            A estimativa histórica não é um vencimento judicial.
+            {% else %}
+            A origem e a regra desta data histórica ainda precisam ser verificadas;
+            ela não equivale a um evento da análise automática atual.
+            {% endif %}
+            A edição é opcional.
+        </p>
         {% endif %}
 
-        {% if prazo.prazo_id and prazo.triagem %}
-        <section class="secao">
-            <details id="historico-legado">
-                <summary>Histórico do sistema anterior — não determina os eventos da agenda</summary>
-                <p>Este registro foi preservado para consulta. Seus dias, sua contagem e sua data
-                não são usados como vencimento ativo pelo fluxo automático atual.</p>
-                {% if prazo.origem_prazo == 'estimativa_prazus' %}
-                <p>É uma estimativa antiga do Prazus, não um prazo extraído e calculado a partir
-                da análise atual do documento.</p>
-                {% endif %}
-                <div class="informacoes">
-                    <div class="campo"><span>Nome histórico</span><strong>{{ prazo.nome_prazo or "Não informado" }}</strong></div>
-                    <div class="campo"><span>Quantidade de dias histórica</span><strong>{{ prazo.dias_prazo_atual if prazo.dias_prazo_atual is not none else "Não definida" }}</strong></div>
-                    <div class="campo"><span>Início histórico</span><strong>{{ prazo.data_inicio or "Não definido" }}</strong></div>
-                    <div class="campo"><span>Vencimento histórico — não é data de evento atual</span><strong>{{ prazo.data_vencimento or "Não definido" }}</strong></div>
-                    <div class="campo"><span>Contagem histórica</span><strong>{{ prazo.tipo_contagem or "Não definida" }}</strong></div>
-                    <div class="campo"><span>Estado do registro histórico</span><strong>{{ prazo.status }}</strong></div>
-                </div>
-            </details>
-        </section>
-        {% elif prazo.prazo_id %}
-        <section class="secao">
-            <h2>Informações do acompanhamento preservado</h2>
-            {% if prazo.ajuste_historico %}
-            <p>Esta data conserva o ajuste histórico descrito acima. Ela não substitui as datas
-            individuais dos eventos automáticos nem representa validação jurídica.</p>
-            {% endif %}
-            <div class="informacoes">
-                <div class="campo"><span>Nome do prazo</span><strong>{{ prazo.nome_prazo or "Não informado" }}</strong></div>
-                <div class="campo"><span>Dias configurados</span><strong>{{ prazo.dias_prazo_atual if prazo.dias_prazo_atual is not none else "Não definido" }}</strong></div>
-                <div class="campo"><span>Data de início</span><strong>{{ prazo.data_inicio or "Não definida" }}</strong></div>
-                <div class="campo"><span>Data de vencimento</span><strong>{{ prazo.data_vencimento or "Sem vencimento calculado" }}</strong></div>
-                <div class="campo"><span>Contagem</span><strong>{{ prazo.tipo_contagem or "Não definida" }}</strong></div>
-                <div class="campo"><span>Status</span><strong>{{ prazo.status }}</strong></div>
-            </div>
-        </section>
-        {% elif not eventos_automaticos %}
-        <section class="secao">
-            <h2>Acompanhamento da publicação</h2>
-            <p>Esta publicação ainda não possui evento com data calculável a partir dos dados disponíveis.
-            Não foi atribuído vencimento arbitrário.</p>
-            {% if prazo.dias_sugeridos %}
-            <p>Menção identificada no texto: {{ prazo.dias_sugeridos }} dias
-            {% if prazo.tipo_contagem_sugerida %}({{ prazo.tipo_contagem_sugerida }}){% endif %}.
-            Trecho: {{ prazo.trecho_sugerido }}</p>
-            {% endif %}
-        </section>
-        {% endif %}
-
-        <section class="secao">
-            <h2>Observações da advogada</h2>
-            <p>{{ prazo.observacoes or "Nenhuma observação cadastrada." }}</p>
-
-            {% if prazo.link_processo %}
-            <a href="{{ prazo.link_processo }}" target="_blank" rel="noopener noreferrer">
-                Acessar processo
-            </a>
-            {% endif %}
-        </section>
-
-        <section class="secao">
-            <h2>Documento original do DJEN</h2>
+        {% if prazo.acompanhamento_estado == "dispensada" %}
+        <p role="status">
+            Revisão da publicação encerrada.
+            Os eventos existentes e o documento DJEN permanecem preservados.
+        </p>
+        {% elif prazo.acompanhamento_estado == "pendente"
+            and not prazo.ajuste_historico
+            and prazo.revisao_estado != "confirmada"
+            and prazo.personalizado_manualmente != True %}
+        <form class="detalhes-revisao" method="post"
+              action="{{ url_for('calendario.dispensar_publicacao', publicacao_id=prazo.publicacao_id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit">
+                Marcar publicação como revisada (opcional)
+            </button>
             <p>
-                <strong>Identificador:</strong>
-                {{ prazo.identificador_djen }}
+                Essa ação não cancela compromissos. Para concluir ou cancelar
+                um evento, use sua edição opcional abaixo.
+            </p>
+        </form>
+        {% endif %}
+    </div>
+
+    <section class="secao">
+        <h2>Informações do processo</h2>
+
+        <div class="informacoes">
+            <div class="campo">
+                <span>Cliente</span>
+                <strong>{{ prazo.cliente or "Não informado" }}</strong>
+            </div>
+            <div class="campo">
+                <span>Número do processo</span>
+                <strong>{{ prazo.numero_processo }}</strong>
+            </div>
+            <div class="campo">
+                <span>Tribunal</span>
+                <strong>{{ prazo.tribunal or "Não informado" }}</strong>
+            </div>
+            <div class="campo">
+                <span>Vara</span>
+                <strong>{{ prazo.unidade_judicial or prazo.vara or "Não informada" }}</strong>
+            </div>
+            <div class="campo">
+                <span>Classe</span>
+                <strong>{{ prazo.classe or "Não informada" }}</strong>
+            </div>
+            <div class="campo">
+                <span>Tipo de documento</span>
+                <strong>{{ prazo.tipo_documento or "Não informado" }}</strong>
+            </div>
+            <div class="campo">
+                <span>Assunto</span>
+                <strong>{{ prazo.assunto or "Não informado" }}</strong>
+            </div>
+            <div class="campo">
+                <span>Data de disponibilização</span>
+                <strong>{{ prazo.data_disponibilizacao or "Não informada" }}</strong>
+            </div>
+            <div class="campo">
+                <span>Data de publicação</span>
+                <strong>{{ prazo.data_publicacao or "Não informada" }}</strong>
+            </div>
+        </div>
+    </section>
+
+    {% if eventos_automaticos %}
+    <section class="secao">
+        <h2>Eventos identificados automaticamente</h2>
+        <p>
+            Extraídos do DJEN e das análises já armazenadas.
+            Não exigem confirmação manual para aparecer na agenda.
+        </p>
+
+        <div class="informacoes">
+            {% for evento in eventos_automaticos %}
+            <div class="campo evento-ficha">
+                {% if evento.extendedProps.tipo == 'pericia' %}
+                <span>Perícia agendada</span>
+                <strong>
+                    {{ evento.start[8:10] }}/{{ evento.start[5:7] }}/{{ evento.start[:4] }}
+                    {% if not evento.allDay %}às {{ evento.start[11:16] }}{% endif %}
+                </strong>
+                {% elif evento.extendedProps.tipo == 'prazo_provisorio' %}
+                <span>Data-limite calculada automaticamente — provisória</span>
+                <strong>
+                    {{ evento.start[8:10] }}/{{ evento.start[5:7] }}/{{ evento.start[:4] }}
+                </strong>
+                <p>{{ evento.extendedProps.nome_prazo }}</p>
+                {% else %}
+                <span>Compromisso identificado</span>
+                <strong>{{ evento.start }}</strong>
+                <p>{{ evento.extendedProps.nome_prazo }}</p>
+                {% endif %}
+
+                <p>Estado: {{ evento.extendedProps.status }}.</p>
+
+                {% if evento.extendedProps.aviso %}
+                <p>{{ evento.extendedProps.aviso }}</p>
+                {% endif %}
+
+                {% if evento.extendedProps.evento_id %}
+                <details class="nao-imprimir evento-edicao">
+                    <summary>Editar este evento (opcional)</summary>
+
+                    <form class="evento-formulario" method="post"
+                          action="{{ url_for('calendario.editar_evento_automatico', evento_id=evento.extendedProps.evento_id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                        <label>
+                            Compromisso
+                            <input name="nome" maxlength="150"
+                                   value="{{ evento.extendedProps.nome_prazo }}">
+                        </label>
+
+                        <label>
+                            {% if evento.allDay %}Data{% else %}Data e horário{% endif %}
+                            <input name="inicio"
+                                   type="{{ 'date' if evento.allDay else 'datetime-local' }}"
+                                   step="1" value="{{ evento.start }}">
+                        </label>
+
+                        <label>
+                            Estado
+                            <select name="status">
+                                {% for estado in ['pendente', 'concluido', 'cancelado'] %}
+                                <option value="{{ estado }}"
+                                        {% if estado == evento.extendedProps.status %}selected{% endif %}>
+                                    {{ estado }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </label>
+
+                        <label>
+                            Alerta, dias antes
+                            <input type="number" min="0" max="3650" name="alerta"
+                                   value="{{ evento.extendedProps.alerta_proximidade if evento.extendedProps.alerta_proximidade is not none else '' }}">
+                        </label>
+
+                        <p>Deixe nome/data vazios para restaurar o valor automático.</p>
+                        <button type="submit">Salvar ajuste</button>
+                    </form>
+                </details>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if prazo.prazo_id and prazo.triagem %}
+    <section class="secao">
+        <details id="historico-legado">
+            <summary>Histórico do sistema anterior — não determina os eventos da agenda</summary>
+            <p>
+                Este registro foi preservado para consulta. Seus dias, sua contagem
+                e sua data não são usados como vencimento ativo pelo fluxo automático atual.
             </p>
 
-            <p>Versão em texto para leitura. O conteúdo recebido do DJEN permanece preservado.</p>
-            <div class="documento">{{ prazo.conteudo_original | documento_texto }}</div>
-            <details class="nao-imprimir">
-                <summary>Ver conteúdo bruto recebido do DJEN</summary>
-                <pre class="documento">{{ prazo.conteudo_original }}</pre>
-            </details>
-        </section>
+            {% if prazo.origem_prazo == 'estimativa_prazus' %}
+            <p>
+                É uma estimativa antiga do Prazus, não um prazo extraído e calculado
+                a partir da análise atual do documento.
+            </p>
+            {% endif %}
 
+            <div class="informacoes">
+                <div class="campo">
+                    <span>Nome histórico</span>
+                    <strong>{{ prazo.nome_prazo or "Não informado" }}</strong>
+                </div>
+                <div class="campo">
+                    <span>Quantidade de dias histórica</span>
+                    <strong>{{ prazo.dias_prazo_atual if prazo.dias_prazo_atual is not none else "Não definida" }}</strong>
+                </div>
+                <div class="campo">
+                    <span>Início histórico</span>
+                    <strong>{{ prazo.data_inicio or "Não definido" }}</strong>
+                </div>
+                <div class="campo">
+                    <span>Vencimento histórico — não é data de evento atual</span>
+                    <strong>{{ prazo.data_vencimento or "Não definido" }}</strong>
+                </div>
+                <div class="campo">
+                    <span>Contagem histórica</span>
+                    <strong>{{ prazo.tipo_contagem or "Não definida" }}</strong>
+                </div>
+                <div class="campo">
+                    <span>Estado do registro histórico</span>
+                    <strong>{{ prazo.status }}</strong>
+                </div>
+            </div>
+        </details>
+    </section>
+
+    {% elif prazo.prazo_id %}
+    <section class="secao">
+        <h2>Informações do acompanhamento preservado</h2>
+
+        {% if prazo.ajuste_historico %}
+        <p>
+            Esta data conserva o ajuste histórico descrito acima.
+            Ela não substitui as datas individuais dos eventos automáticos
+            nem representa validação jurídica.
+        </p>
+        {% endif %}
+
+        <div class="informacoes">
+            <div class="campo">
+                <span>Nome do prazo</span>
+                <strong>{{ prazo.nome_prazo or "Não informado" }}</strong>
+            </div>
+            <div class="campo">
+                <span>Dias configurados</span>
+                <strong>{{ prazo.dias_prazo_atual if prazo.dias_prazo_atual is not none else "Não definido" }}</strong>
+            </div>
+            <div class="campo">
+                <span>Data de início</span>
+                <strong>{{ prazo.data_inicio or "Não definida" }}</strong>
+            </div>
+            <div class="campo">
+                <span>Data de vencimento</span>
+                <strong>{{ prazo.data_vencimento or "Sem vencimento calculado" }}</strong>
+            </div>
+            <div class="campo">
+                <span>Contagem</span>
+                <strong>{{ prazo.tipo_contagem or "Não definida" }}</strong>
+            </div>
+            <div class="campo">
+                <span>Status</span>
+                <strong>{{ prazo.status }}</strong>
+            </div>
+        </div>
+    </section>
+
+    {% elif not eventos_automaticos %}
+    <section class="secao">
+        <h2>Acompanhamento da publicação</h2>
+        <p>
+            Esta publicação ainda não possui evento com data calculável
+            a partir dos dados disponíveis. Não foi atribuído vencimento arbitrário.
+        </p>
+
+        {% if prazo.dias_sugeridos %}
+        <p>
+            Menção identificada no texto: {{ prazo.dias_sugeridos }} dias
+            {% if prazo.tipo_contagem_sugerida %}({{ prazo.tipo_contagem_sugerida }}){% endif %}.
+            Trecho: {{ prazo.trecho_sugerido }}
+        </p>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    <section class="secao">
+        <h2>Observações da advogada</h2>
+        <p class="observacoes-texto">{{ prazo.observacoes or "Nenhuma observação cadastrada." }}</p>
+
+        {% if prazo.link_processo %}
+        <a href="{{ prazo.link_processo }}" target="_blank" rel="noopener noreferrer">
+            Acessar processo
+        </a>
+        {% endif %}
+    </section>
+
+    <section class="secao">
+        <h2>Documento original do DJEN</h2>
+        <p>
+            <strong>Identificador:</strong>
+            {{ prazo.identificador_djen }}
+        </p>
+        <p>
+            Versão em texto para leitura.
+            O conteúdo recebido do DJEN permanece preservado.
+        </p>
+
+        <div class="documento">{{ prazo.conteudo_original | documento_texto }}</div>
+
+        <details class="nao-imprimir">
+            <summary>Ver conteúdo bruto recebido do DJEN</summary>
+            <pre class="documento">{{ prazo.conteudo_original }}</pre>
+        </details>
+    </section>
+</div>
 {% endblock %}

@@ -16,9 +16,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function adicionarLinha(container, tag, texto, classe) {
         if (texto == null || String(texto).trim() === '') return;
+
         const elemento = document.createElement(tag);
         elemento.textContent = String(texto);
         elemento.title = String(texto);
+
         if (classe) elemento.className = classe;
         container.appendChild(elemento);
     }
@@ -27,12 +29,15 @@ document.addEventListener('DOMContentLoaded', function () {
         if (props.manual_id) {
             return `/prazos-manuais/${encodeURIComponent(props.manual_id)}`;
         }
+
         if (props.publicacao_id) {
             return `/publicacao/${encodeURIComponent(props.publicacao_id)}`;
         }
+
         if (props.prazo_id) {
             return `/prazo/${encodeURIComponent(props.prazo_id)}`;
         }
+
         return null;
     }
 
@@ -45,9 +50,11 @@ document.addEventListener('DOMContentLoaded', function () {
         fixedWeekCount: false,
         dayMaxEvents: false,
         headerToolbar: false,
+
         dayHeaderContent: function (info) {
             return diasSemana[info.date.getDay()];
         },
+
         datesSet: function (info) {
             titulo.textContent = info.view.title;
             campoMes.value = info.view.currentStart.getMonth();
@@ -60,16 +67,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 );
             });
         },
+
         eventDataTransform: function (dados) {
             return { ...dados, url: '' };
         },
+
         events: {
             url: '/api/calendario/eventos',
             method: 'GET',
+
             failure: function (erro) {
                 console.error('Erro ao carregar eventos:', erro);
             }
         },
+
         eventContent: function (info) {
             const evento = info.event;
             const props = evento.extendedProps;
@@ -80,10 +91,16 @@ document.addEventListener('DOMContentLoaded', function () {
             const dias = Number.isInteger(props.dias_restantes)
                 ? props.dias_restantes
                 : props.quantidade_dias;
-            const textoDias = Number.isInteger(dias) ? `${dias} dias` : '— dias';
+            const textoDias = Number.isInteger(dias)
+                ? `${dias} dias`
+                : '— dias';
 
             const card = document.createElement('div');
             card.className = 'prazo-card';
+
+            const conteudo = document.createElement('div');
+            conteudo.className = 'prazo-conteudo';
+            card.appendChild(conteudo);
 
             const botao = document.createElement('button');
             botao.type = 'button';
@@ -104,11 +121,12 @@ document.addEventListener('DOMContentLoaded', function () {
             adicionarLinha(linhas, 'span', compromisso);
 
             botao.appendChild(linhas);
-            card.appendChild(botao);
+            conteudo.appendChild(botao);
 
             const detalhes = document.createElement('div');
             detalhes.className = 'prazo-detalhes';
             detalhes.hidden = !aberto;
+            detalhes.inert = !aberto;
 
             if (props.manual_id) {
                 adicionarLinha(detalhes, 'small', 'Origem manual');
@@ -130,9 +148,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 detalhes.appendChild(link);
             }
 
-            card.appendChild(detalhes);
+            conteudo.appendChild(detalhes);
+
+            let animacaoAtual = null;
 
             botao.addEventListener('click', function () {
+                const elementoEvento = botao.closest('.fc-event');
+                if (!elementoEvento) return;
+
+                const alturaInicial = card.getBoundingClientRect().height;
+
+                if (animacaoAtual) {
+                    animacaoAtual.onfinish = null;
+                    animacaoAtual.cancel();
+                    animacaoAtual = null;
+                }
+
+                card.style.height = `${alturaInicial}px`;
+
                 const expandir = !expandidos.has(evento.id);
 
                 if (expandir) {
@@ -141,17 +174,66 @@ document.addEventListener('DOMContentLoaded', function () {
                     expandidos.delete(evento.id);
                 }
 
-                botao.setAttribute('aria-expanded', String(expandir));
-                detalhes.hidden = !expandir;
-                botao.closest('.fc-event').classList.toggle('prazo-expandido', expandir);
+                function aplicarEstado(estado) {
+                    elementoEvento.classList.toggle(
+                        'prazo-expandido',
+                        estado
+                    );
+                    detalhes.hidden = !estado;
+                }
 
-                requestAnimationFrame(function () {
-                    calendar.updateSize();
-                });
+                aplicarEstado(expandir);
+
+                const alturaFinal = conteudo.getBoundingClientRect().height;
+
+                if (!expandir) {
+                    aplicarEstado(true);
+                }
+
+                botao.setAttribute('aria-expanded', String(expandir));
+                detalhes.inert = !expandir;
+
+                function finalizar() {
+                    aplicarEstado(expandir);
+                    card.style.removeProperty('height');
+                    animacaoAtual = null;
+                }
+
+                if (
+                    typeof card.animate !== 'function' ||
+                    Math.abs(alturaInicial - alturaFinal) < 1
+                ) {
+                    finalizar();
+                    return;
+                }
+
+                const animacao = card.animate(
+                    [
+                        { height: `${alturaInicial}px` },
+                        { height: `${alturaFinal}px` }
+                    ],
+                    {
+                        duration: 350,
+                        easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+                        fill: 'forwards'
+                    }
+                );
+
+                animacaoAtual = animacao;
+
+                animacao.onfinish = function () {
+                    if (animacaoAtual !== animacao) return;
+
+                    aplicarEstado(expandir);
+                    card.style.height = `${alturaFinal}px`;
+                    animacao.cancel();
+                    finalizar();
+                };
             });
 
             return { domNodes: [card] };
         },
+
         eventDidMount: function (info) {
             info.el.classList.toggle(
                 'prazo-expandido',

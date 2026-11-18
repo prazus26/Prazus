@@ -1,272 +1,199 @@
 .app-layout {
     .pagina-editar {
-
-        padding: 28px 35px 55px;
-
-        min-height: 100%;
-
+        max-width: 1050px;
+        margin: 24px auto 48px;
+        padding: 24px 40px 100px;
         background: #fff;
-
         color: #211b17;
 
         .editar-topo {
-
             display: flex;
-
             align-items: center;
-
             justify-content: space-between;
-
-            margin-bottom: 28px;
-
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 32px;
         }
 
         .editar-topo h1 {
-
-            font-size: 25px;
-
-            font-weight: 400;
-
             margin: 0;
-
+            font-size: 32px;
+            font-weight: 400;
         }
 
         .editar-voltar {
-
-            color: #aa8a60;
-
-            font-size: 13px;
-
+            color: #8b6f47;
+            font-size: 16px;
             text-decoration: underline;
-
         }
 
         .formulario-editar {
-
             display: flex;
-
             flex-direction: column;
-
-            align-items: flex-start;
-
-            gap: 22px;
-
-            max-width: 420px;
-
+            align-items: stretch;
+            gap: 24px;
+            width: 100%;
+            max-width: 640px;
         }
 
         .editar-campo {
-
             display: flex;
-
             flex-direction: column;
-
-            gap: 7px;
-
+            gap: 9px;
             width: 100%;
-
+            min-width: 0;
         }
 
         .editar-campo label {
-
-            font-size: 16px;
-
-            font-weight: 400;
-
             color: #25201b;
-
+            font-size: 18px;
+            font-weight: 400;
         }
 
         .editar-campo input,
-
         .editar-campo select,
+        .editar-campo textarea {
+            box-sizing: border-box;
+            min-width: 0;
+            width: 100%;
+            min-height: 42px;
+            padding: 9px 12px;
+            border: 1px solid #c9c0b3;
+            border-radius: 4px;
+            background: #fff;
+            color: #28231d;
+            font-family: inherit;
+            font-size: 17px;
+        }
 
         .editar-campo textarea {
-
-            box-sizing: border-box;
-
-            width: 100%;
-
-            height: 34px;
-
-            padding: 5px 9px;
-
-            color: #28231d;
-
-            background: #fff;
-
-            border: 1px solid #c9c0b3;
-
-            border-radius: 3px;
-
-            font-family: inherit;
-
-            font-size: 14px;
-
+            min-height: 150px;
+            resize: vertical;
+            line-height: 1.6;
         }
 
         .editar-campo input:focus,
-
         .editar-campo select:focus,
-
         .editar-campo textarea:focus {
-
-            outline: none;
-
+            outline: 2px solid #ded3c2;
             border-color: #a48660;
+        }
 
+        .editar-campo input:disabled {
+            background: #f2f0ed;
+            color: #81766a;
+        }
+
+        .editar-campo p,
+        .editar-campo small {
+            margin: 0;
+            color: #796b5b;
+            font-size: 14px;
+            line-height: 1.6;
         }
 
         .editar-tribunal-vara {
-
             display: flex;
-
-            gap: 8px;
-
+            gap: 12px;
         }
 
         .editar-tribunal-vara input {
-
             flex: 1;
-
             min-width: 0;
-
         }
 
         .editar-tribunal-vara select {
-
-            width: 135px;
-
+            width: 170px;
         }
 
         .editar-data-primeira {
-
-            margin-top: 16px;
-
+            margin-top: 8px;
         }
 
         .editar-campo input[type="date"] {
-
-            width: 210px;
-
+            width: 260px;
+            max-width: 100%;
             color-scheme: light;
-
         }
 
         .editar-botoes {
-
             display: flex;
-
-            gap: 10px;
-
-            margin-top: 12px;
-
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 16px;
         }
 
         .editar-salvar,
-
         .editar-cancelar {
-
             display: inline-flex;
-
             align-items: center;
-
             justify-content: center;
-
-            box-sizing: border-box;
-
-            height: 34px;
-
-            padding: 0 17px;
-
-            font-family: inherit;
-
-            font-size: 12px;
-
-            font-weight: 400;
-
-            color: #fff;
-
-            text-decoration: none;
-
-            background: #a48762;
-
+            min-height: 42px;
+            padding: 10px 20px;
             border: 1px solid #a48762;
-
-            border-radius: 3px;
-
+            border-radius: 4px;
+            background: #a48762;
+            color: #fff;
+            font-family: inherit;
+            font-size: 16px;
+            line-height: 1.4;
+            text-align: center;
+            text-decoration: none;
             cursor: pointer;
-
-            transition: background 0.2s;
-
+            transition: background-color 0.2s;
         }
 
         .editar-cancelar {
-
-            background: #786c57;
-
             border-color: #786c57;
-
+            background: #786c57;
         }
 
         .editar-salvar:hover {
-
             background: #8e714e;
-
         }
 
         .editar-cancelar:hover {
-
             background: #5f5443;
+        }
 
+        .editar-salvar:focus-visible,
+        .editar-cancelar:focus-visible,
+        .editar-voltar:focus-visible {
+            outline: 2px solid #6c5e43;
+            outline-offset: 3px;
         }
 
         .editar-erros {
-
-            max-width: 420px;
-
-            margin-bottom: 20px;
-
-            padding: 12px;
-
-            color: #9c392d;
-
-            background: #fff1ee;
-
+            max-width: 640px;
+            margin-bottom: 24px;
+            padding: 16px;
             border: 1px solid #e6b4ad;
-
             border-radius: 4px;
-
+            background: #fff1ee;
+            color: #9c392d;
         }
 
         .editar-erros p {
-
-            margin: 3px 0;
-
+            margin: 4px 0;
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 700px) {
+            margin: 12px auto 30px;
+            padding: 16px 18px 80px;
 
-            .pagina-editar {
-
-                padding: 20px 16px;
-
+            .editar-topo h1 {
+                font-size: 28px;
             }
 
-            .formulario-editar {
-
-                max-width: 100%;
-
-            }
-
-            .editar-botoes {
-
+            .editar-tribunal-vara {
                 flex-wrap: wrap;
-
             }
 
+            .editar-tribunal-vara input,
+            .editar-tribunal-vara select {
+                flex: 1 1 180px;
+                width: 100%;
+            }
         }
-
     }
-
 }

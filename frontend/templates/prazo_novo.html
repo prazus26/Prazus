@@ -1,43 +1,86 @@
 <!doctype html>
 <html lang="pt-br">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Registrar prazo revisado | Prazus</title>
   <style>
-    body { background:#f5f5f5; font-family:Arial,sans-serif; color:#292929; padding:24px; }
-    main { max-width:660px; margin:auto; background:white; padding:28px; border-radius:8px; }
-    label { display:block; margin:16px 0 6px; }
-    input,select { width:100%; box-sizing:border-box; padding:10px; border:1px solid #bbb; }
-    button { margin-top:24px; padding:12px 20px; background:#315b45; color:white; border:0; cursor:pointer; }
-    .aviso { padding:12px; background:#e5edf0; }
-    .erro { color:#9c2323; }
+    body {
+      background: #f5f5f5;
+      font-family: Arial, sans-serif;
+      color: #292929;
+      padding: 24px;
+    }
+
+    main {
+      max-width: 660px;
+      margin: auto;
+      background: white;
+      padding: 28px;
+      border-radius: 8px;
+    }
+
+    label {
+      display: block;
+      margin: 16px 0 6px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px;
+      border: 1px solid #bbb;
+    }
+
+    button {
+      margin-top: 24px;
+      padding: 12px 20px;
+      background: #315b45;
+      color: white;
+      border: 0;
+      cursor: pointer;
+    }
+
+    .aviso {
+      padding: 12px;
+      background: #e5edf0;
+    }
+
+    .erro {
+      color: #9c2323;
+    }
   </style>
 </head>
+
 <body>
-<main>
-  <h1>Registrar prazo após revisão</h1>
-  <p>Processo: <strong>{{ publicacao.numero_processo }}</strong></p>
-  <p class="aviso">Confira o documento, o destinatário, o procedimento, o calendário do tribunal e a data aplicável. O Prazus não calcula nem certifica automaticamente o vencimento nesta tela.</p>
-  {% for erro in erros %}<p class="erro">{{ erro }}</p>{% endfor %}
-  <form method="post">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <label for="nome_prazo">Nome do prazo</label>
-    <input id="nome_prazo" name="nome_prazo" maxlength="150" required value="{{ dados.nome_prazo }}">
-    <label for="dias">Quantidade de dias</label>
-    <input id="dias" name="dias" type="number" min="1" max="3650" required value="{{ dados.dias }}">
-    <label for="tipo_contagem">Contagem conferida</label>
-    <select id="tipo_contagem" name="tipo_contagem" required>
-      <option value="uteis" {% if dados.tipo_contagem == 'uteis' %}selected{% endif %}>Dias úteis</option>
-      <option value="corridos" {% if dados.tipo_contagem == 'corridos' %}selected{% endif %}>Dias corridos</option>
-    </select>
-    <label for="data_inicio">Data inicial conferida</label>
-    <input id="data_inicio" name="data_inicio" type="date" required value="{{ dados.data_inicio }}">
-    <label for="data_vencimento">Data de vencimento conferida</label>
-    <input id="data_vencimento" name="data_vencimento" type="date" required value="{{ dados.data_vencimento }}">
-    <button type="submit">Salvar prazo revisado</button>
-  </form>
-  <p><a href="{{ url_for('calendario.detalhes_publicacao', publicacao_id=publicacao.publicacao_id) }}">Voltar para a publicação</a></p>
-</main>
+  <main>
+    <h1>Registrar prazo após revisão</h1>
+    <p>Processo: <strong>{{ publicacao.numero_processo }}</strong></p>
+    <p class="aviso">Confira o documento, o destinatário, o procedimento, o calendário do tribunal e a data aplicável. O
+      Prazus não calcula nem certifica automaticamente o vencimento nesta tela.</p>
+    {% for erro in erros %}<p class="erro">{{ erro }}</p>{% endfor %}
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label for="nome_prazo">Nome do prazo</label>
+      <input id="nome_prazo" name="nome_prazo" maxlength="150" required value="{{ dados.nome_prazo }}">
+      <label for="dias">Quantidade de dias</label>
+      <input id="dias" name="dias" type="number" min="1" max="3650" required value="{{ dados.dias }}">
+      <label for="tipo_contagem">Contagem conferida</label>
+      <select id="tipo_contagem" name="tipo_contagem" required>
+        <option value="uteis" {% if dados.tipo_contagem=='uteis' %}selected{% endif %}>Dias úteis</option>
+        <option value="corridos" {% if dados.tipo_contagem=='corridos' %}selected{% endif %}>Dias corridos</option>
+      </select>
+      <label for="data_inicio">Data inicial conferida</label>
+      <input id="data_inicio" name="data_inicio" type="date" required value="{{ dados.data_inicio }}">
+      <label for="data_vencimento">Data de vencimento conferida</label>
+      <input id="data_vencimento" name="data_vencimento" type="date" required value="{{ dados.data_vencimento }}">
+      <button type="submit">Salvar prazo revisado</button>
+    </form>
+    <p><a href="{{ url_for('calendario.detalhes_publicacao', publicacao_id=publicacao.publicacao_id) }}">Voltar para a
+        publicação</a></p>
+  </main>
 </body>
+
 </html>

@@ -2,9 +2,10 @@
     --dourado: #9f8158;
     --preto: #0f0d0b;
     --papel: #fff;
-    --fundo: #e8e6e7;
+    --fundo: #eeece9;
     --linha: #ded3c2;
     --texto: #29231d;
+    --texto-secundario: #80705d;
 }
 
 * {
@@ -19,14 +20,14 @@ body {
 }
 
 .cabecalho-prazus {
-    min-height: 105px;
-    padding: 18px 32px;
-    background: var(--preto);
-    color: var(--papel);
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 24px;
+    min-height: 105px;
+    padding: 18px 32px;
+    background: var(--preto);
+    color: var(--papel);
 }
 
 .marca-prazus {
@@ -46,14 +47,14 @@ body {
 }
 
 .cabecalho-legenda {
-    font-size: 18px;
     color: #d4c9b9;
+    font-size: 18px;
 }
 
 .pagina-publicacoes {
-    max-width: 1100px;
+    max-width: 1040px;
     margin: 0 auto;
-    padding: 32px 24px 64px;
+    padding: 40px 32px 100px;
 }
 
 .barra-impressao {
@@ -61,40 +62,43 @@ body {
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 20px;
-    margin-bottom: 26px;
+    gap: 24px;
+    margin-bottom: 28px;
 }
 
 .barra-impressao h1 {
-    margin: 0 0 6px;
+    margin: 0 0 8px;
     color: var(--preto);
-    font: 400 38px "Italiana", Georgia, serif;
+    font: 400 40px "Italiana", Georgia, serif;
 }
 
 .barra-impressao p {
     margin: 0;
-    font-size: 14px;
-    color: #6c5e43;
+    color: var(--texto-secundario);
+    font-size: 15px;
 }
 
 .acoes-impressao {
     display: flex;
+    align-items: center;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px;
 }
 
 .botao {
-    min-height: 40px;
-    padding: 10px 18px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 9px;
+    min-height: 44px;
+    padding: 11px 20px;
     border: 1px solid var(--dourado);
-    border-radius: 3px;
-    font: 400 14px "Marcellus", Georgia, serif;
+    border-radius: 4px;
+    font: 400 15px "Marcellus", Georgia, serif;
+    line-height: 1.3;
     text-decoration: none;
     cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
 }
 
 .botao-voltar {
@@ -102,13 +106,18 @@ body {
     color: #624c30;
 }
 
+.botao-voltar:hover {
+    background: #e6dfd5;
+}
+
 .botao-imprimir {
     background: var(--dourado);
     color: #fff;
 }
 
-.botao:hover {
-    filter: brightness(.94);
+.botao-imprimir:hover {
+    border-color: #856a46;
+    background: #856a46;
 }
 
 .botao:focus-visible,
@@ -118,98 +127,124 @@ body {
 }
 
 .botao:disabled {
-    opacity: .5;
+    opacity: 0.5;
     cursor: default;
 }
 
 .documentos-publicacoes {
     display: grid;
-    gap: 28px;
+    gap: 36px;
 }
 
 .documento-publicacao {
     min-width: 0;
-    padding: 36px 42px 44px;
-    border: 1px solid #d7d0c7;
+    padding: 36px 48px 52px;
+    border: 1px solid #ddd5ca;
     border-top: 3px solid var(--dourado);
+    border-radius: 3px;
     background: var(--papel);
+    box-shadow: 0 5px 20px #30281f08;
 }
 
 .documento-identificacao {
     display: flex;
+    align-items: center;
     justify-content: space-between;
     gap: 20px;
-    margin-bottom: 25px;
-    color: #806845;
+    margin-bottom: 28px;
+    color: var(--texto-secundario);
     font-size: 12px;
 }
 
 .rotulo-processo {
-    margin: 0 0 6px;
-    color: #796b5b;
-    font-size: 13px;
+    margin: 0 0 8px;
+    color: var(--texto-secundario);
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
 .documento-cabecalho h2 {
     margin: 0;
     color: var(--preto);
-    font-size: 27px;
+    font-size: 30px;
     font-weight: 400;
+    line-height: 1.4;
     overflow-wrap: anywhere;
 }
 
 .dados-publicacao {
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
-    gap: 18px;
-    margin: 25px 0 0;
-    padding-bottom: 24px;
-    border-bottom: 1px solid var(--linha);
+    grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin: 26px 0 0;
+    padding: 20px;
+    border: 1px solid #e7dfd4;
+    border-radius: 4px;
+    background: #faf8f5;
+}
+
+.dados-publicacao>div {
+    min-width: 0;
 }
 
 .dados-publicacao dt {
-    margin-bottom: 6px;
-    color: #796b5b;
-    font-size: 12px;
+    margin-bottom: 7px;
+    color: var(--texto-secundario);
+    font-size: 13px;
 }
 
 .dados-publicacao dd {
     margin: 0;
-    font-size: 15px;
+    color: var(--texto);
+    font-size: 16px;
+    line-height: 1.5;
     overflow-wrap: anywhere;
 }
 
+.documento-conteudo {
+    margin-top: 30px;
+}
+
 .documento-conteudo h3 {
-    margin: 24px 0 15px;
-    font-size: 16px;
+    margin: 0 0 20px;
+    padding-left: 12px;
+    border-left: 3px solid var(--dourado);
+    color: #493b29;
+    font-size: 20px;
     font-weight: 400;
+    line-height: 1.4;
 }
 
 .texto {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
-    font-size: 16px;
-    line-height: 1.75;
+    font-size: 17px;
+    line-height: 1.85;
 }
 
 .lista-vazia {
-    padding: 35px;
+    padding: 40px;
     border: 1px solid var(--linha);
+    border-radius: 4px;
     background: var(--papel);
 }
 
 .lista-vazia h2 {
-    margin-top: 0;
-    font-size: 22px;
+    margin: 0 0 14px;
+    font-size: 24px;
     font-weight: 400;
 }
 
 .lista-vazia p {
+    margin: 0;
+    color: var(--texto-secundario);
     line-height: 1.6;
 }
 
-@media (max-width: 650px) {
+@media (max-width: 700px) {
     .cabecalho-prazus {
+        min-height: 90px;
         padding: 16px 20px;
     }
 
@@ -226,7 +261,11 @@ body {
     }
 
     .pagina-publicacoes {
-        padding: 24px 14px 40px;
+        padding: 28px 18px 70px;
+    }
+
+    .barra-impressao h1 {
+        font-size: 36px;
     }
 
     .acoes-impressao {
@@ -234,36 +273,68 @@ body {
     }
 
     .acoes-impressao .botao {
-        flex: 1 1 150px;
+        flex: 1 1 160px;
     }
 
     .documento-publicacao {
-        padding: 24px 20px 30px;
+        padding: 26px 24px 36px;
     }
 
     .documento-cabecalho h2 {
-        font-size: 22px;
+        font-size: 25px;
     }
 
     .dados-publicacao {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        padding: 16px;
     }
 
     .dado-cliente {
         grid-column: 1 / -1;
     }
+
+    .texto {
+        font-size: 16px;
+        line-height: 1.8;
+    }
+}
+
+@media (max-width: 420px) {
+    .pagina-publicacoes {
+        padding-right: 12px;
+        padding-left: 12px;
+    }
+
+    .documento-publicacao {
+        padding-right: 18px;
+        padding-left: 18px;
+    }
+
+    .dados-publicacao {
+        grid-template-columns: 1fr;
+    }
 }
 
 @page {
     size: A4;
-    margin: 18mm;
+    margin: 20mm 20mm 20mm 30mm;
 }
 
 @media print {
+
+    html,
     body {
+        width: auto;
+        height: auto;
+        margin: 0;
+        padding: 0;
+        overflow: visible;
         background: #fff;
         color: #000;
-        font-family: Georgia, "Times New Roman", serif;
+        font-family: Calibri, Arial, sans-serif;
+        font-size: 12pt;
+        line-height: 1.2;
     }
 
     .somente-tela {
@@ -281,9 +352,13 @@ body {
     }
 
     .documento-publicacao {
-        padding: 0;
+        min-width: 0;
         margin: 0;
-        border: 0;
+        padding: 0;
+        border: none;
+        border-radius: 0;
+        background: #fff;
+        box-shadow: none;
     }
 
     .documento-publicacao+.documento-publicacao {
@@ -297,41 +372,104 @@ body {
     }
 
     .documento-identificacao {
-        margin-bottom: 15px;
-        color: #333;
+        display: flex;
+        justify-content: space-between;
+        gap: 10mm;
+        margin-bottom: 8mm;
+        color: #444;
+        font-family: Calibri, Arial, sans-serif;
         font-size: 9pt;
+        line-height: 1.3;
+    }
+
+    .documento-identificacao span:first-child::after {
+        content: " · Cópia para consulta";
+    }
+
+    .documento-identificacao span:last-child::before {
+        content: "Documento ";
+    }
+
+    .rotulo-processo {
+        margin: 0 0 2mm;
+        color: #000;
+        font-size: 10pt;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: uppercase;
     }
 
     .documento-cabecalho h2 {
-        font-size: 17pt;
+        margin: 0;
         color: #000;
-    }
-
-    .rotulo-processo,
-    .dados-publicacao dt {
-        color: #333;
-        font-size: 9pt;
+        font-family: Calibri, Arial, sans-serif;
+        font-size: 15pt;
+        font-weight: 700;
+        line-height: 1.3;
+        overflow-wrap: anywhere;
     }
 
     .dados-publicacao {
-        margin-top: 18px;
-        padding-bottom: 15px;
-        border-color: #bbb;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4mm 8mm;
+        margin: 6mm 0 0;
+        padding: 4mm 0;
+        border: none;
+        border-top: 0.5pt solid #aaa;
+        border-bottom: 0.5pt solid #aaa;
+        border-radius: 0;
+        background: transparent;
+    }
+
+    .dado-cliente {
+        grid-column: 1 / -1;
+    }
+
+    .dados-publicacao dt {
+        margin: 0 0 1mm;
+        color: #000;
+        font-size: 10pt;
+        font-weight: 700;
     }
 
     .dados-publicacao dd {
-        font-size: 10pt;
+        margin: 0;
+        color: #000;
+        font-size: 12pt;
+        line-height: 1.3;
+        overflow-wrap: anywhere;
+    }
+
+    .documento-conteudo {
+        margin-top: 7mm;
     }
 
     .documento-conteudo h3 {
-        margin: 18px 0 12px;
-        font-size: 11pt;
+        margin: 0 0 5mm;
+        padding: 0;
+        border: none;
+        color: #000;
+        font-family: Calibri, Arial, sans-serif;
+        font-size: 12pt;
+        font-weight: 700;
+        text-transform: uppercase;
         break-after: avoid;
+        page-break-after: avoid;
     }
 
     .texto {
-        font-size: 11pt;
-        line-height: 1.5;
+        margin: 0;
+        color: #000;
+        font-family: Calibri, Arial, sans-serif;
+        font-size: 12pt;
+        font-weight: 400;
+        line-height: 1.2;
+        text-align: justify;
+        text-align-last: left;
+        text-indent: 5mm;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
         orphans: 3;
         widows: 3;
     }

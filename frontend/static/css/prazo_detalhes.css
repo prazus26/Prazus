@@ -1,0 +1,248 @@
+.app-layout .acompanhamento-pagina {
+    max-width: 1120px;
+    margin: 24px auto 48px;
+    padding: 20px 40px 100px;
+    color: #29231d;
+    font-size: 17px;
+    line-height: 1.6;
+}
+
+.acompanhamento-pagina .detalhes-cabecalho {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 18px 24px;
+    margin-bottom: 16px;
+}
+
+.acompanhamento-pagina .detalhes-cabecalho h1 {
+    margin: 0;
+    font-size: 34px;
+    font-weight: 400;
+    line-height: 1.25;
+}
+
+.acompanhamento-pagina .detalhes-cabecalho > p,
+.acompanhamento-pagina .detalhes-cabecalho > form {
+    grid-column: 1 / -1;
+    margin: 0;
+}
+
+.acompanhamento-pagina .detalhes-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.acompanhamento-pagina .detalhes-acoes a,
+.acompanhamento-pagina button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 10px 18px;
+    border: 1px solid #9f8158;
+    border-radius: 4px;
+    background: #9f8158;
+    color: #fff;
+    font: 400 16px "Marcellus", serif;
+    line-height: 1.4;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.acompanhamento-pagina .detalhes-acoes a:hover,
+.acompanhamento-pagina button:hover {
+    background: #856a46;
+}
+
+.acompanhamento-pagina a:focus-visible,
+.acompanhamento-pagina button:focus-visible,
+.acompanhamento-pagina summary:focus-visible {
+    outline: 2px solid #6c5e43;
+    outline-offset: 3px;
+}
+
+.acompanhamento-pagina .detalhes-revisao p {
+    margin: 10px 0 0;
+    color: #796b5b;
+    font-size: 14px;
+}
+
+.acompanhamento-pagina .secao {
+    padding: 30px 0;
+    border-bottom: 1px solid #ded3c2;
+}
+
+.acompanhamento-pagina .secao:last-child {
+    border-bottom: 0;
+}
+
+.acompanhamento-pagina .secao h2 {
+    margin: 0 0 18px;
+    font-size: 26px;
+    font-weight: 400;
+    line-height: 1.3;
+}
+
+.acompanhamento-pagina p {
+    margin: 0 0 12px;
+}
+
+.acompanhamento-pagina .informacoes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 40px;
+}
+
+.acompanhamento-pagina .secao > p + .informacoes {
+    margin-top: 20px;
+}
+
+.acompanhamento-pagina .campo {
+    min-width: 0;
+}
+
+.acompanhamento-pagina .campo > span {
+    display: block;
+    margin-bottom: 5px;
+    color: #84745e;
+    font-size: 14px;
+}
+
+.acompanhamento-pagina .campo > strong {
+    display: block;
+    font-size: 17px;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+.acompanhamento-pagina .evento-ficha {
+    padding: 22px;
+    border: 1px solid #ded3c2;
+    border-radius: 6px;
+    background: #fbf9f6;
+}
+
+.acompanhamento-pagina .evento-ficha > p {
+    margin-top: 12px;
+}
+
+.acompanhamento-pagina summary {
+    color: #80633e;
+    cursor: pointer;
+}
+
+.acompanhamento-pagina details[open] > summary {
+    margin-bottom: 16px;
+}
+
+.acompanhamento-pagina .evento-edicao {
+    margin-top: 18px;
+}
+
+.acompanhamento-pagina .evento-formulario {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.acompanhamento-pagina .evento-formulario label {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    font-size: 15px;
+}
+
+.acompanhamento-pagina .evento-formulario input,
+.acompanhamento-pagina .evento-formulario select {
+    box-sizing: border-box;
+    min-width: 0;
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #c9c0b3;
+    border-radius: 4px;
+    background: #fff;
+    color: #29231d;
+    font: inherit;
+}
+
+.acompanhamento-pagina .evento-formulario input:focus,
+.acompanhamento-pagina .evento-formulario select:focus {
+    outline: 2px solid #ded3c2;
+    border-color: #9f8158;
+}
+
+.acompanhamento-pagina .evento-formulario p {
+    margin: 0;
+    color: #796b5b;
+    font-size: 14px;
+}
+
+.acompanhamento-pagina .observacoes-texto,
+.acompanhamento-pagina .documento {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    line-height: 1.8;
+}
+
+.acompanhamento-pagina .documento {
+    margin-top: 16px;
+}
+
+.acompanhamento-pagina pre.documento {
+    max-height: 400px;
+    padding: 18px;
+    overflow: auto;
+    border: 1px solid #ded3c2;
+    border-radius: 4px;
+    background: #f7f4ef;
+    font-size: 14px;
+}
+
+@media (max-width: 900px) {
+    .app-layout .acompanhamento-pagina {
+        margin: 12px auto 30px;
+        padding: 16px 20px 80px;
+    }
+
+    .acompanhamento-pagina .detalhes-cabecalho,
+    .acompanhamento-pagina .informacoes {
+        grid-template-columns: 1fr;
+    }
+
+    .acompanhamento-pagina .detalhes-cabecalho h1 {
+        font-size: 29px;
+    }
+}
+
+@media print {
+    body > header,
+    .sidebar,
+    .acompanhamento-pagina .nao-imprimir {
+        display: none !important;
+    }
+
+    html,
+    body,
+    .app-layout,
+    .main-content {
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    .main-content {
+        padding: 0 !important;
+    }
+
+    .app-layout .acompanhamento-pagina {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .acompanhamento-pagina .evento-ficha {
+        break-inside: avoid;
+    }
+}
