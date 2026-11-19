@@ -17,11 +17,11 @@ from backend.repository.acompanhamento_repository import (
 )
 from backend.service.estado_prazo_service import aplicar_estado_legado
 from backend.service.agenda_eventos_service import listar_eventos
-from backend.controller.calendario_controller import (
+from backend.service.calendario_service import (
     configuracao_cores,
     definir_cor
 )
-from backend.controller.publicadosHoje_controller import (
+from backend.service.publicacoes_consulta_service import (
     consultar_publicacoes,
     adicionar_analises_ia,
     MESES

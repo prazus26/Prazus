@@ -1,41 +1,16 @@
-
 import hashlib
-
-from datetime import datetime, date, timedelta
+from datetime import datetime, date
 from zoneinfo import ZoneInfo
-
-from flask import (
-    Blueprint,
-    render_template,
-    request,
-    session,
-    abort,
-    redirect,
-    url_for,
-)
-
+from flask import abort
 from backend.database import Session
-from backend.utils.autenticacao import login_obrigatorio
-
 from backend.model.usuario import Usuario
 from backend.model.publicacao import Publicacao
 from backend.model.processo import Processo
 from backend.model.prazo import Prazo
 from backend.model.analise_ia import AnaliseIA
-from backend.model.metadado_comunicacao_djen import (
-    MetadadoComunicacaoDJEN,
-)
-
+from backend.model.metadado_comunicacao_djen import MetadadoComunicacaoDJEN
 from backend.service.avaliacao_prazos_ia_service import avaliar_analise
-from backend.service.estado_prazo_service import tem_confirmacao_humana, classificar_evento
-
-from backend.controller.calendario_controller import (
-    configuracao_cores,
-    definir_cor,
-)
-
-
-publicadosHoje_bp = Blueprint("publicadosHoje", __name__)
+from backend.service.estado_prazo_service import classificar_evento, tem_confirmacao_humana
 
 
 MESES = [
@@ -86,24 +61,6 @@ ESTADOS_AVALIACAO = {
     "data_calculada_para_conferencia":
         "Data calculada para conferência",
 }
-
-
-def data_selecionada():
-    valor = request.args.get("data")
-
-    if not valor:
-        return datetime.now(
-            ZoneInfo("America/Sao_Paulo")
-        ).date()
-
-    try:
-        return date.fromisoformat(valor)
-
-    except ValueError:
-        abort(
-            400,
-            description="Data inválida.",
-        )
 
 
 def consultar_publicacoes(
@@ -221,7 +178,6 @@ def consultar_publicacoes(
 
     finally:
         db.close()
-
 
 
 def adicionar_analises_ia(publicacoes, usuario_id):
@@ -518,213 +474,3 @@ def adicionar_analises_ia(publicacoes, usuario_id):
             estados.append(mensagem)
 
         publicacao["ia_estados_candidatos"] = estados
-
-
-@publicadosHoje_bp.route("/PublicadosHoje")
-@login_obrigatorio
-def publicadosHoje():
-
-    usuario_id = session["usuario_id"]
-
-    dia = data_selecionada()
-
-    # ==========================================
-    # CONSULTAR PUBLICAÇÕES
-    # ==========================================
-
-    publicacoes = consultar_publicacoes(
-        usuario_id,
-        dia=dia,
-    )
-
-    # ==========================================
-    # ANÁLISE E AVALIAÇÃO AUTOMÁTICA
-    # ==========================================
-
-    adicionar_analises_ia(
-        publicacoes,
-        usuario_id,
-    )
-
-    # ==========================================
-    # CORES DOS CARTÕES
-    # ==========================================
-
-    hoje = datetime.now(
-        ZoneInfo("America/Sao_Paulo")
-    ).date()
-
-    cores = configuracao_cores(
-        usuario_id
-    )
-
-    from backend.service.agenda_eventos_service import listar_eventos
-    eventos_por_publicacao = {}
-    for evento in listar_eventos(usuario_id):
-        eventos_por_publicacao.setdefault(evento['extendedProps']['publicacao_id'], []).append(evento)
-    for publicacao in publicacoes:
-        eventos = eventos_por_publicacao.get(publicacao['id'], [])
-        if eventos:
-            pendentes = [e for e in eventos if e['extendedProps']['status'] == 'pendente']
-            if not pendentes and all(e['extendedProps']['status'] == 'concluido' for e in eventos):
-                publicacao['status'] = 'concluido'
-            elif pendentes:
-                primeiro = min(pendentes, key=lambda e: e['start'])
-                publicacao['data_vencimento'] = date.fromisoformat(primeiro['start'][:10])
-                publicacao['nome_prazo'] = ', '.join(e['extendedProps']['nome_prazo'] for e in pendentes)
-                publicacao['dias_prazo'] = (publicacao['data_vencimento'] - hoje).days
-        vencimento = publicacao[
-            "data_vencimento"
-        ]
-
-        if publicacao["status"] == "concluido":
-
-            publicacao["cor"] = "#E7E5E5"
-
-        else:
-
-            publicacao["cor"] = definir_cor(
-                vencimento,
-                cores,
-                hoje,
-            )
-
-    # ==========================================
-    # RENDERIZAR PÁGINA
-    # ==========================================
-
-    return render_template(
-        "publicadosHoje.html",
-
-        publicacoes=publicacoes,
-
-        data_atual=dia,
-
-        data_anterior=(
-            dia - timedelta(days=1)
-        ).isoformat(),
-
-        data_proxima=(
-            dia + timedelta(days=1)
-        ).isoformat(),
-
-        data_formatada=(
-            f"{dia.day} de "
-            f"{MESES[dia.month]} "
-            f"{dia.year}"
-        ),
-    )
-
-
-# ==========================================
-# IMPRIMIR PUBLICAÇÕES SELECIONADAS
-# ==========================================
-
-@publicadosHoje_bp.route(
-    "/PublicadosHoje/imprimir",
-    methods=["POST"],
-)
-@login_obrigatorio
-def imprimir_publicacoes():
-
-    usuario_id = session["usuario_id"]
-
-    try:
-        dia = date.fromisoformat(
-            request.form.get(
-                "data",
-                datetime.now(
-                    ZoneInfo("America/Sao_Paulo")
-                ).date().isoformat(),
-            )
-        )
-
-    except ValueError:
-        abort(
-            400,
-            description="Data inválida.",
-        )
-
-    modo = request.form.get("modo")
-
-    if modo == "todos":
-
-        publicacoes = consultar_publicacoes(
-            usuario_id,
-            dia=dia,
-        )
-
-    elif modo == "selecionados":
-
-        ids = request.form.getlist(
-            "publicacoes"
-        )
-
-        try:
-            ids = [
-                int(identificador)
-                for identificador in ids
-            ]
-
-        except ValueError:
-            abort(400)
-
-        if not ids:
-
-            return redirect(
-                url_for(
-                    "publicadosHoje.publicadosHoje",
-                    data=dia.isoformat(),
-                )
-            )
-
-        publicacoes = consultar_publicacoes(
-            usuario_id,
-            dia=dia,
-            ids=ids,
-        )
-
-    else:
-        abort(400)
-
-    return render_template(
-        "publicacoes_impressao.html",
-        publicacoes=publicacoes,
-    )
-
-
-# ==========================================
-# IMPRIMIR UMA PUBLICAÇÃO
-# ==========================================
-
-@publicadosHoje_bp.route(
-    "/PublicadosHoje/imprimir/<int:publicacao_id>",
-)
-@login_obrigatorio
-def imprimir_uma_publicacao(publicacao_id):
-
-    publicacoes = consultar_publicacoes(
-        session["usuario_id"],
-        ids=[publicacao_id],
-    )
-
-    if not publicacoes:
-        abort(404)
-
-    return render_template(
-        "publicacoes_impressao.html",
-        publicacoes=publicacoes,
-    )
-
-
-@publicadosHoje_bp.route('/publicacao/<int:publicacao_id>/concluir', methods=['POST'])
-@login_obrigatorio
-def concluir_publicacao(publicacao_id):
-    from backend.repository.publicacao_repository import concluir_itens_publicacao
-    import hmac
-    token = session.get('csrf_token', '')
-    if not token or not hmac.compare_digest(request.form.get('csrf_token', ''), token):
-        abort(403)
-    if not concluir_itens_publicacao(publicacao_id, session['usuario_id']):
-        abort(404)
-    return redirect(url_for('publicadosHoje.publicadosHoje', data=data_selecionada().isoformat()))

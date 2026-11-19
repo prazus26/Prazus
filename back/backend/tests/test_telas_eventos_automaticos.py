@@ -1,46 +1,41 @@
-"""Regressões estáticas para as rotas de detalhes e edição do calendário.
-
-Não requer Flask/MySQL nos testes: inspeciona a função e seus usos.
-"""
-import ast
+"""Regressões das respostas da API, sem rede, MySQL ou templates."""
 import unittest
-from pathlib import Path
-
-ARQUIVO = Path(__file__).resolve().parents[1] / 'controller' / 'calendario_controller.py'
-
-
-def corpo_funcao(nome):
-    arvore = ast.parse(ARQUIVO.read_text(encoding='utf-8'))
-    funcao = next(n for n in arvore.body if isinstance(n, ast.FunctionDef) and n.name == nome)
-    return ast.get_source_segment(ARQUIVO.read_text(encoding='utf-8'), funcao)
+from unittest.mock import patch
+from backend.service import agenda_eventos_service as agenda
+from backend.service import telas_publicacoes_service as telas
 
 
 class TelasAutomacaoTests(unittest.TestCase):
+    def setUp(self):
+        from test_eventos_persistidos import PersistenciaEventos
+        self.fixture = PersistenciaEventos(methodName='runTest')
+        self.fixture.setUp()
+        agenda.sincronizar_eventos(1)
+        self.cliente = self.fixture.cliente_api()
+
+    def tearDown(self):
+        self.fixture.tearDown()
+
     def test_detalhes_prazo_passam_eventos_automaticos(self):
-        texto = corpo_funcao('detalhes_prazo')
-        self.assertIn('eventos_da_publicacao(usuario_id, prazo["publicacao_id"])', texto)
-        self.assertIn('eventos_automaticos=eventos_automaticos', texto)
+        resposta = self.cliente.get('/api/prazos/1')
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(len(resposta.json['eventos_automaticos']), 3)
+        self.assertNotEqual(resposta.json['prazo']['revisao_estado'], 'confirmada')
 
     def test_edicao_define_triagem_antes_de_utilizar(self):
-        texto = corpo_funcao('editar_prazo')
-        self.assertIn('aplicar_estado_legado(prazo)', texto)
-        self.assertLess(texto.index('aplicar_estado_legado(prazo)'), texto.index('if request.method == "GET":'))
+        resposta = self.cliente.get('/api/prazos/1/editar')
+        self.assertEqual(resposta.status_code, 200)
+        self.assertTrue(resposta.json['prazo']['triagem'])
+        self.assertEqual(resposta.json['dados']['data_vencimento'], '')
 
     def test_edicao_exibe_eventos_sem_confirmacao(self):
-        texto = corpo_funcao('editar_prazo')
-        self.assertIn('eventos_da_publicacao(usuario_id, prazo["publicacao_id"])', texto)
-        self.assertIn('eventos_automaticos=eventos_automaticos', texto)
+        resposta = self.cliente.get('/api/publicacoes/1/editar')
+        self.assertEqual(len(resposta.json['eventos_automaticos']), 3)
+        self.assertFalse(resposta.json['salvo'])
+        self.assertNotEqual(resposta.json['prazo']['revisao_estado'], 'confirmada')
 
     def test_detalhes_publicacao_nao_consultam_duas_vezes(self):
-        texto = corpo_funcao('detalhes_publicacao')
-        self.assertEqual(texto.count('eventos_da_publicacao('), 1)
-
-    def test_template_exibe_dois_tipos_sem_confirmacao(self):
-        template = (Path(__file__).resolve().parents[2] / 'frontend' / 'templates' / 'prazo_editar.html').read_text(encoding='utf-8')
-        self.assertIn("evento.extendedProps.tipo == 'pericia'", template)
-        self.assertIn("evento.extendedProps.tipo == 'prazo_provisorio'", template)
-        self.assertIn('A edição abaixo é opcional', template)
-
-
-if __name__ == '__main__':
-    unittest.main()
+        with patch.object(telas, 'eventos_da_publicacao', wraps=telas.eventos_da_publicacao) as consulta:
+            resposta = self.cliente.get('/api/publicacoes/1')
+        self.assertEqual(resposta.status_code, 200)
+        consulta.assert_called_once_with(1, 1)

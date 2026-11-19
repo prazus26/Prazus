@@ -5,7 +5,7 @@ from backend.controller.api_auth_controller import (
     dados_json,
     usuario_publico
 )
-from backend.controller.calendario_controller import configuracao_cores
+from backend.service.calendario_service import configuracao_cores
 from backend.service.preferencias_service import (
     salvar_conta,
     salvar_cores,

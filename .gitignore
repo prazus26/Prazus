@@ -139,8 +139,8 @@ backups_estimativas/
 
 # Scripts de estrutura e migrações
 # devem continuar no repositório.
-!database/*.sql
-!backend/migrations/*.sql
+!back/database/*.sql
+!back/backend/migrations/*.sql
 
 
 # ==========================================
@@ -166,3 +166,7 @@ tempCodeRunnerFile.py
 
 .streamlit/secrets.toml
 .pypirc
+
+back/atualizacao_estrutura/
+
+logs-antigos/

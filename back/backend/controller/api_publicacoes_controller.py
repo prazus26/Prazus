@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 from flask import Blueprint, abort, g, jsonify, request
 
 from backend.controller.api_auth_controller import dados_json
-from backend.controller.publicadosHoje_controller import consultar_publicacoes
+from backend.service.publicacoes_consulta_service import consultar_publicacoes
 from backend.repository.acompanhamento_repository import dispensar_acompanhamento
 from backend.repository.notificacao_repository import (
     buscar_notificacoes,

@@ -10,7 +10,7 @@ from backend.repository.notificacao_repository import (
     contar_notificacoes_nao_visualizadas
 )
 from backend.controller.api_auth_controller import usuario_publico
-from backend.controller.calendario_controller import obter_eventos_calendario
+from backend.service.calendario_service import obter_eventos_calendario
 from backend.utils.autenticacao_api import login_api_obrigatorio
 
 api_painel_bp = Blueprint(
