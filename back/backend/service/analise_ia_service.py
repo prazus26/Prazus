@@ -7,8 +7,9 @@ from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
 
+from pathlib import Path
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 
 class Participante(BaseModel):

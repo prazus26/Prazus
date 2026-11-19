@@ -16,7 +16,8 @@ from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 
 from backend.service.rotina_diaria_service import executar_rotina_diaria
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL não configurada no ambiente")

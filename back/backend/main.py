@@ -27,9 +27,7 @@ from backend.service.agendador_service import iniciar_agendador
 
 from backend.service.apresentacao_documento_service import documento_texto
 
-load_dotenv()
-
-
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 FRONTEND = Path(__file__).resolve().parent.parent / "frontend"
 
